@@ -53,9 +53,9 @@ The local cluster is created using kind as you will see below. In the kind confi
   - deploy-trust-manager-operator, ie: `make deploy-trust-manager-operator`
     - Deploy Trust Manager Operator into `cert-manager` namespace using [jetstack/trust-manager](https://github.com/cert-manager/trust-manager/tree/main/deploy/charts/trust-manager) helm package.
 
-  - deploy-prometheus-operator, ie: `make deploy-prometheus-operator`
-    - Deploy Prometheus Operator into `prometheus-operator` namespace
-    - PROMETHEUS_OPERATOR_VERSION environment variable can be used to define the prometheus version to install
+  - deploy-prometheus, ie: `make deploy-prometheus`
+    - Deploy Prometheus Stack (Prometheus Operator, Prometheus, AlertManager, Node Exporter, Kube State Metrics, Grafana) into `prometheus` namespace.
+    - INGRESS_DOMAIN environment variable can be used to define the ingress domain. It defaults to `localdev`
 
   - deploy-toolbox, ie: `make deploy-toolbox`
     - Deploy toolbox container using tlbueno/toolbox using [tlbueno/toolbox](https://github.com/tlbueno/helm-charts/tree/main/charts/toolbox). Toolbox is a simple container with a set of tools installed into it. For detail check the [toolbox github repo](https://github.com/tlbueno/toolbox)

@@ -11,6 +11,8 @@ BIN_DIR                       = $(ROOT_DIR)/bin
 K8S_VERSION                   =           	# if empty kind uses the latest version available on for the installed kind version
 KIND_CLUSTER_NAME             = local-k8s
 
+INGRESS_DOMAIN                = localdev
+
 ifdef REDHAT_CATALOG_IMAGE
     $(eval REDHAT_CATALOG_IMAGE_PARAM = "${REDHAT_CATALOG_IMAGE}")
 endif
@@ -21,10 +23,10 @@ all: help
 ### local cluster targets ###
 #############################
 .PHONY: prepare-k8s
-prepare-k8s: add-helm-charts-repos update-helm-charts-repos deploy-ingress-controller deploy-olm deploy-metrics-server deploy-cert-manager-operator deploy-trust-manager-operator deploy-prometheus-operator deploy-toolbox ## Deploy the resource for kubernetes cluster
+prepare-k8s: add-helm-charts-repos update-helm-charts-repos deploy-ingress-controller deploy-olm deploy-metrics-server deploy-cert-manager-operator deploy-trust-manager-operator deploy-prometheus deploy-toolbox ## Deploy the resource for kubernetes cluster
 
 .PHONY: prepare-ocp
-prepare-ocp: add-helm-charts-repos update-helm-charts-repos deploy-cert-manager-operator deploy-trust-manager-operator deploy-prometheus-operator deploy-toolbox ## Deploy resources for openshift cluster
+prepare-ocp: add-helm-charts-repos update-helm-charts-repos deploy-cert-manager-operator deploy-trust-manager-operator deploy-prometheus deploy-toolbox ## Deploy resources for openshift cluster
 
 .PHONY: create-kind
 create-kind: ## Create Kind cluster
@@ -37,6 +39,8 @@ create-kind: ## Create Kind cluster
 		kind create cluster --name=$(KIND_CLUSTER_NAME) --config $${tempfile} $${image_flag} --wait 180s; \
 		kubectl wait pod --all -n kube-system --for condition=Ready --timeout 180s; \
 		rm $${tempfile}; \
+	else \
+		echo "Kind cluster $(KIND_CLUSTER_NAME) already exists"; \
 	fi
 	@echo ""
 
@@ -137,7 +141,7 @@ deploy-trust-manager-operator: ## Deploy Trust Manager Operator
 	@echo "#########################################"
 	@namespace_name=cert-manager; \
 	echo -n "Deploying chart " && helm show chart jetstack/trust-manager |grep -E "(^version|^appVersion)" | sort -r | paste -sd ' '; \
-	helm install --namespace default --create-namespace --wait \
+	helm install --namespace default --wait \
 		--set namespace=$${namespace_name} \
 		trust-manager jetstack/trust-manager; \
 	$(BIN_DIR)/kubectl-wait-wrapper.sh -n $${namespace_name} \
@@ -147,26 +151,31 @@ deploy-trust-manager-operator: ## Deploy Trust Manager Operator
 		-p "--for=condition=Ready --timeout=300s --all pods"
 	@echo "" 
 
-.PHONY: deploy-prometheus-operator
-deploy-prometheus-operator: ## Deploy Prometheus Operator
-	@echo "######################################"
-	@echo "# Running deploy-prometheus-operator #"
-	@echo "######################################"
-ifndef PROMETHEUS_OPERATOR_VERSION
-	$(eval PROMETHEUS_OPERATOR_VERSION = $(shell curl -s https://api.github.com/repos/prometheus-operator/prometheus-operator/releases/latest | jq -cr .tag_name))
-endif
-	@echo "Prometheus Operator version ${PROMETHEUS_OPERATOR_VERSION}"
-	@namespace_name=prometheus-operator; \
-	kubectl create namespace prometheus-operator; \
-	curl -sL https://github.com/prometheus-operator/prometheus-operator/releases/download/$(PROMETHEUS_OPERATOR_VERSION)/bundle.yaml \
-		| sed -E -e "s/^( +namespace: ).*/\1$${namespace_name}/" \
-		| kubectl -n $${namespace_name} create -f - ; \
+.PHONY: deploy-prometheus
+deploy-prometheus: ## Deploy Prometheus Stack
+	@echo "#############################"
+	@echo "# Running deploy-prometheus #"
+	@echo "#############################"
+	@namespace_name=monitoring; \
+	kubectl create namespace $${namespace_name} || true; \
+	echo -n "Deploying chart " && helm show chart tlbueno/toolbox |grep -E "(^version|^appVersion)" | sort -r | paste -sd ' '; \
+	helm install --namespace default --wait \
+		--set namespaceOverride=$${namespace_name} \
+		--set grafana.namespaceOverride=$${namespace_name} \
+		--set grafana.adminPassword=admin \
+		--set grafana.ingress.enabled=true \
+		--set grafana.ingress.hosts="{grafana.$(INGRESS_DOMAIN)}" \
+		--set prometheus.ingress.enabled=true \
+		--set prometheus.ingress.hosts="{prometheus.$(INGRESS_DOMAIN)}" \
+		--set kube-state-metrics.namespaceOverride=$${namespace_name} \
+		--set prometheus-node-exporter.namespaceOverride=$${namespace_name} \
+		prometheus prometheus-community/kube-prometheus-stack; \
 	$(BIN_DIR)/kubectl-wait-wrapper.sh -n $${namespace_name} \
 		-t deployments \
 		-p "--for=condition=Available --timeout=300s --all deployments" \
 		-t pods \
-		-p "--for=condition=Ready --timeout=300s pods --selector app.kubernetes.io/name=prometheus-operator"
-	@echo "" 
+		-p "--for=condition=Ready --timeout=300s --all pods"
+	@echo ""
 
 .PHONY: deploy-toolbox
 deploy-toolbox: ## Deploy toolbox container
@@ -228,8 +237,8 @@ add-helm-charts-repos: ## Add helm-charts repos do helm
 	@echo "Adding metrics-server helm repo"
 	@helm repo add metrics-server https://kubernetes-sigs.github.io/metrics-server/
 	@echo "Adding prometheus-community helm repo"
-	@helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-	@echo "" 
+	@helm repo add prometheus-community	https://prometheus-community.github.io/helm-charts
+	@echo ""
 
 .PHONY: update-helm-charts-repos
 update-helm-charts-repos: ## Update helm-charts repos to helm
