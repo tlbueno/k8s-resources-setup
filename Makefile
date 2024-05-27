@@ -207,7 +207,7 @@ deploy-redhat-operators-catalog: ## Deploy RedHat Operators Catalog
 		-t deployments \
 		-p "--for=condition=Available --timeout=300s --all deployments" \
 		-t pods \
-		-p "--field-selector=status.phase!=Succeeded --for=condition=Ready --timeout=300s --all pods" -d
+		-p "--field-selector=status.phase!=Succeeded --for=condition=Ready --timeout=300s --all pods"
 	@echo ""
 
 #############################################
