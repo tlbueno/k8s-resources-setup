@@ -1,5 +1,5 @@
 # k8s-resources-setup
-A set kubernetes resources to easily get deployed on kubernetes cluster
+A set resources to easily get deployed on kubernetes or openshift cluster
 
 The goal of this project is to have a simple way to prepare a kubernetes or openshift cluster with some basic resources/tools for tests, experiments and proof of concepts. 
 
@@ -15,66 +15,66 @@ The goal of this project is to have a simple way to prepare a kubernetes or open
 
 ### Local cluster vs remote cluster
 
-In the targets list below, you will se what can be deployed into the cluster. There is a target that creates a local cluster but this is not a requirement. If you have a remote cluster, since you are logged in into it, it will work without issues. If you are running an Openshift cluster there are targets with may not apply, like the ones which deploys olm and redhat operators catalog.
+In the targets list below, you will see what can be deployed in the cluster. There is a target that creates a local cluster but this is not a requirement. If you have a remote cluster, since you are logged in it, it will work without issues. If you are running an Openshift cluster there are targets which may not apply, like the ones which deploys olm and redhat operators catalog.
 
 The local cluster is created using kind as you will see below. In the kind configuration, there is an extra mount to mount the `${HOME}/.docker/config.json`. This file allows kind to use the registries credentials from docker. As an example, if you are logged in on a private registry like `registry.redhat.io` in docker, kind will be able to use images from there.
 
 ### Make targets
 
   - prepare-k8s, ie: `make prepare-k8s`
-    - This target execute most of the targets below but skips those with should not be needed on an Openshift cluster
+    - This target execute most of the targets below.
 
   - prepare-ocp, ie: `make prepare-ocp`
-    - This target execute most of the targets below but skips those with should not be needed on an Openshift cluster
+    - This target execute most of the targets below but skips those which should not be needed on an Openshift cluster
 
   - create-kind, ie: `make create-kind`
     - Create Kind cluster using the configuration file [kind-config.yaml](local-cluster/kind-config.yaml).
 
     - K8S_VERSION environment variable can be used to define the kubernetes version kind will use. ie: `make create-kind K8S_VERSION=v1.30.0`. If the K8S_VERSION is not provide kind uses the latest version available on for the installed kind version.
 
-    - KIND_CLUSTER_NAME environment variole can be used to define the cluster name. It is useful if there is more than one kind cluster on your computer. ie: `make create-kind KIND_CLUSTER_NAME=my-cluster`. It defaults to `local-k8s`.
+    - KIND_CLUSTER_NAME environment variable can be used to define the cluster name. It is useful if there is more than one kind cluster on your computer. ie: `make create-kind KIND_CLUSTER_NAME=my-cluster`. It defaults to `local-k8s`.
 
   - delete-local-cluster, ie: `make delete-local-cluster`
-    - delete local cluster.
+    - delete the local cluster.
 
   - deploy-ingress-controller, ie: `make deploy-ingress-controller`
-    - Deploy Ingress controller in into `ingress-nginx` namespace using [ingress-nginx/ingress-nginx](https://github.com/kubernetes/ingress-nginx/tree/main/charts/ingress-nginx) helm package. Please refer to the target in the [Makefile](Makefile) to see the options used.
+    - Deploy Ingress controller in `ingress-nginx` namespace using [ingress-nginx/ingress-nginx](https://github.com/kubernetes/ingress-nginx/tree/main/charts/ingress-nginx) helm package. Please refer to the target in the [Makefile](Makefile) to see the options used.
 
   - deploy-metrics-server, ie: `make deploy-metrics-server`
-    - Deploy Kubernetes Metric Server into `kube-system` namespace using [metrics-server/metrics-server](https://github.com/kubernetes-sigs/metrics-server/tree/master/charts/metrics-server) helm package.
+    - Deploy Kubernetes Metric Server in `kube-system` namespace using [metrics-server/metrics-server](https://github.com/kubernetes-sigs/metrics-server/tree/master/charts/metrics-server) helm package.
 
   - deploy-olm, ie: `make deploy-olm`
-    - Deploy Operator Lifecycle Manager (OLM) in into `olm` namespace. This target should not be executed on openshift clusters as Openshift already have OLM installed.
+    - Deploy Operator Lifecycle Manager (OLM) in `olm` namespace. This target should not be executed on openshift clusters as Openshift already have OLM installed.
     - OLM_VERSION environment variable can be used to define the OLM version to install otherwise it will install the latest version.
 
   - deploy-cert-manager-operator, ie: `make deploy-cert-manager-operator`
-    - Deploy Cert Manager Operator in into `cert-manager` namespace using [tlbueno/olm-operator-installer](https://github.com/tlbueno/helm-charts/tree/main/charts/olm-operator-installer) helm package.
+    - Deploy Cert Manager Operator in in `cert-manager` namespace using [tlbueno/olm-operator-installer](https://github.com/tlbueno/helm-charts/tree/main/charts/olm-operator-installer) helm package.
 
   - deploy-trust-manager-operator, ie: `make deploy-trust-manager-operator`
-    - Deploy Trust Manager Operator into `cert-manager` namespace using [jetstack/trust-manager](https://github.com/cert-manager/trust-manager/tree/main/deploy/charts/trust-manager) helm package.
+    - Deploy Trust Manager Operator in `cert-manager` namespace using [jetstack/trust-manager](https://github.com/cert-manager/trust-manager/tree/main/deploy/charts/trust-manager) helm package.
 
   - deploy-prometheus, ie: `make deploy-prometheus`
-    - Deploy Prometheus Stack (Prometheus Operator, Prometheus, AlertManager, Node Exporter, Kube State Metrics, Grafana) into `prometheus` namespace.
+    - Deploy Prometheus Stack (Prometheus Operator, Prometheus, AlertManager, Node Exporter, Kube State Metrics, Grafana) in `prometheus` namespace.
     - INGRESS_DOMAIN environment variable can be used to define the ingress domain. It defaults to `localdev`
 
   - deploy-toolbox, ie: `make deploy-toolbox`
-    - Deploy toolbox container using tlbueno/toolbox using [tlbueno/toolbox](https://github.com/tlbueno/helm-charts/tree/main/charts/toolbox). Toolbox is a simple container with a set of tools installed into it. For detail check the [toolbox github repo](https://github.com/tlbueno/toolbox)
+    - Deploy toolbox container using tlbueno/toolbox using [tlbueno/toolbox](https://github.com/tlbueno/helm-charts/tree/main/charts/toolbox). Toolbox is a simple container image which has a set of tools installed in it. For detail check the [toolbox github repo](https://github.com/tlbueno/toolbox)
 
   - deploy-redhat-operators-catalog, ie: `make deploy-redhat-operators-catalog`
-    - Deploy RedHat Operators Catalog using [tlbueno/catalog-source-installer](https://github.com/tlbueno/helm-charts/tree/main/charts/catalog-source-installer). This target should not be executed on openshift clusters as Openshift already have this package index installed.
+    - Deploy RedHat Operators Catalog in `olm` namespace using [tlbueno/catalog-source-installer](https://github.com/tlbueno/helm-charts/tree/main/charts/catalog-source-installer). This target should not be executed on openshift clusters as Openshift already have this package index installed.
     - `REDHAT_CATALOG_IMAGE` environment variable can be used to specify the catalog index image to be used.
 
   - configure-inotify, ie: `make configure-inotify`
-    - Configure sysctl inotify values (requires sudo access). This may be need in some cases for some applications running fine inside the cluster
+    - Configure sysctl inotify values (requires sudo access). This may be need in some cases for some applications run fine inside the cluster
 
   - add-helm-charts-repos, ie: `make add-helm-charts-repos`
-    - Add helm-charts repos needed by the other targets to helm. May be needed if you are not using the `launch-local-cluster` target
+    - Add helm-charts repos needed by the other targets to helm. May be needed if you are not using the `prepare-k8s` or `prepare-ocp` targets
 
   - update-helm-charts-repos, ie: `make update-helm-charts-repos`
-    - Update helm-charts repos do helm. It is useful to get the latest version of charts from the repos. May be needed if you are not using the `launch-local-cluster` target
+    - Update helm-charts repos. It is useful to get the latest version of charts from the repos. May be needed if you are not using the `prepare-k8s` or `prepare-ocp` targets
 
   - exec-toolbox, ie: `make exec-toolbox`
-    - Execute a shell into the toolbox container.
+    - Execute a shell in the toolbox container.
 
   - help, ie: `make help`
     - Display a simple list of the targets and its description.
@@ -87,7 +87,7 @@ The local cluster is created using kind as you will see below. In the kind confi
 
 ## Ingress tips
 
-To use the ingress usually you need to add the ingress address into /etc/host pointing to the cluster ingress entrypoint. ie, in the kind local cluster, you should point my-app.my-domain to the address 127.0.0.1. If you have multiple ingress addresses it is a boring task to do and manage. Another possible solution is to use an local DNS server to handle it. Below I show the steps to configure the dnsmasq DNS server to handle any subdomain of my main local domain, `localdev`. The configuration was based on Fedora 40 and it may change on other versions or other distributions.
+To use the ingress usually you need to add the ingress address in /etc/host pointing to the cluster ingress entrypoint. ie, in the kind local cluster, you should point my-app.my-domain to the address 127.0.0.1. If you have multiple ingress addresses it is a boring task to do and manage. Another possible solution is to use an local DNS server to handle it. Below I show the steps to configure the dnsmasq DNS server to handle any subdomain of my main local domain, `localdev`. The configuration was based on Fedora 40 and it may change on other versions or other distributions.
 
 - Install dnsmasq
 ```sh
