@@ -23,10 +23,10 @@ all: help
 ### local cluster targets ###
 #############################
 .PHONY: prepare-k8s
-prepare-k8s: add-helm-charts-repos update-helm-charts-repos deploy-ingress-controller deploy-olm deploy-metrics-server deploy-cert-manager-operator deploy-trust-manager-operator deploy-prometheus deploy-toolbox ## Deploy the resource for kubernetes cluster
+prepare-k8s: add-helm-charts-repos update-helm-charts-repos deploy-ingress-controller deploy-olm deploy-metrics-server deploy-cert-manager-operator deploy-trust-manager-operator deploy-prometheus deploy-mariadb-operator deploy-mariadb-instance deploy-toolbox ## Deploy the resource for kubernetes cluster
 
 .PHONY: prepare-ocp
-prepare-ocp: add-helm-charts-repos update-helm-charts-repos deploy-cert-manager-operator deploy-trust-manager-operator deploy-prometheus deploy-toolbox ## Deploy resources for openshift cluster
+prepare-ocp: add-helm-charts-repos update-helm-charts-repos deploy-cert-manager-operator deploy-trust-manager-operator deploy-prometheus deploy-mariadb-operator deploy-mariadb-instance deploy-toolbox ## Deploy resources for openshift cluster
 
 .PHONY: create-kind
 create-kind: ## Create Kind cluster
@@ -59,15 +59,15 @@ deploy-ingress-controller: ## Deploy Ingress controller in the cluster
 	@echo "# Running deploy-ingress-controller #"
 	@echo "#####################################"
 	@namespace_name=ingress-nginx; \
-	kubectl create namespace $${namespace_name} || true; \
-	echo -n "Deploying chart " && helm show chart ingress-nginx/ingress-nginx |grep -E "(^version|^appVersion)" | sort -r | paste -sd ' '; \
-	helm install --namespace default --wait \
+	chart=ingress-nginx/ingress-nginx; \
+	echo -n "Deploying chart $${chart} " && helm show chart $${chart} |grep -E "(^version|^appVersion)" | sort -r | paste -sd ' '; \
+	helm install --namespace $${namespace_name} --create-namespace --wait \
 		--set namespaceOverride=$${namespace_name} \
 		--set controller.extraArgs.enable-ssl-passthrough= \
 		--set controller.allowSnippetAnnotations=true \
 		--set controller.ingressClassResource.default=true \
 		--values https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/hack/manifest-templates/provider/kind/values.yaml \
-		ingress-nginx ingress-nginx/ingress-nginx; \
+		ingress-nginx $${chart}; \
 	$(BIN_DIR)/kubectl-wait-wrapper.sh -n $${namespace_name} \
 		-t pods \
 		-p "--for=condition=Ready --timeout=90s pod --selector=app.kubernetes.io/component=controller"
@@ -79,10 +79,11 @@ deploy-metrics-server: ## Deploy Kubernetes Metric Server
 	@echo "# Running deploy-metrics-server #"
 	@echo "################################"
 	@namespace_name=kube-system; \
-	echo -n "Deploying chart " && helm show chart metrics-server/metrics-server |grep -E "(^version|^appVersion)" | sort -r | paste -sd ' '; \
-	helm install --namespace $${namespace_name} --wait \
+	chart=metrics-server/metrics-server; \
+	echo -n "Deploying chart $${chart} " && helm show chart $${chart} |grep -E "(^version|^appVersion)" | sort -r | paste -sd ' '; \
+	helm install --namespace $${namespace_name} --create-namespace --wait \
 		--set args={--kubelet-insecure-tls} \
-		metrics-server  metrics-server/metrics-server; \
+		metrics-server  $${chart}; \
 	$(BIN_DIR)/kubectl-wait-wrapper.sh -n $${namespace_name} \
 		-t deployments \
 		-p "--for=condition=Available --timeout=300s --all deployments" \
@@ -123,10 +124,11 @@ deploy-cert-manager-operator: ## Deploy Cert Manager Operator
 	@echo "# Running deploy-cert-manager-operator #"
 	@echo "########################################"
 	@namespace_name=cert-manager; \
-	echo -n "Deploying chart " && helm show chart tlbueno/olm-operator-installer |grep -E "(^version|^appVersion)" | sort -r | paste -sd ' '; \
-	helm install --namespace default --wait \
+	chart=tlbueno/olm-operator-installer; \
+	echo -n "Deploying chart $${chart} " && helm show chart $${chart} |grep -E "(^version|^appVersion)" | sort -r | paste -sd ' '; \
+	helm install --namespace default --create-namespace --wait \
 		--set namespace.name=$${namespace_name} \
-		cert-manager tlbueno/olm-operator-installer; \
+		cert-manager $${chart}; \
 	$(BIN_DIR)/kubectl-wait-wrapper.sh -n $${namespace_name} \
 		-t deployments \
 		-p "--for=condition=Available --timeout=300s --all deployments" \
@@ -140,10 +142,10 @@ deploy-trust-manager-operator: ## Deploy Trust Manager Operator
 	@echo "# Running deploy-trust-manager-operator #"
 	@echo "#########################################"
 	@namespace_name=cert-manager; \
-	echo -n "Deploying chart " && helm show chart jetstack/trust-manager |grep -E "(^version|^appVersion)" | sort -r | paste -sd ' '; \
-	helm install --namespace default --wait \
-		--set namespace=$${namespace_name} \
-		trust-manager jetstack/trust-manager; \
+	chart=jetstack/trust-manager; \
+	echo -n "Deploying chart $${chart} " && helm show chart $${chart} |grep -E "(^version|^appVersion)" | sort -r | paste -sd ' '; \
+	helm install --namespace $${namespace_name} --create-namespace --wait \
+		trust-manager $${chart}; \
 	$(BIN_DIR)/kubectl-wait-wrapper.sh -n $${namespace_name} \
 		-t deployments \
 		-p "--for=condition=Available --timeout=300s --all deployments" \
@@ -157,23 +159,52 @@ deploy-prometheus: ## Deploy Prometheus Stack
 	@echo "# Running deploy-prometheus #"
 	@echo "#############################"
 	@namespace_name=monitoring; \
-	kubectl create namespace $${namespace_name} || true; \
-	echo -n "Deploying chart " && helm show chart tlbueno/toolbox |grep -E "(^version|^appVersion)" | sort -r | paste -sd ' '; \
-	helm install --namespace default --wait \
-		--set namespaceOverride=$${namespace_name} \
-		--set grafana.namespaceOverride=$${namespace_name} \
+	chart=prometheus-community/kube-prometheus-stack; \
+	echo -n "Deploying chart $${chart} " && helm show chart $${chart} |grep -E "(^version|^appVersion)" | sort -r | paste -sd ' '; \
+	helm install --namespace $${namespace_name} --create-namespace --wait \
 		--set grafana.adminPassword=admin \
 		--set grafana.ingress.enabled=true \
 		--set grafana.ingress.hosts="{grafana.$(INGRESS_DOMAIN)}" \
 		--set prometheus.ingress.enabled=true \
 		--set prometheus.ingress.hosts="{prometheus.$(INGRESS_DOMAIN)}" \
-		--set kube-state-metrics.namespaceOverride=$${namespace_name} \
-		--set prometheus-node-exporter.namespaceOverride=$${namespace_name} \
-		prometheus prometheus-community/kube-prometheus-stack; \
+		prometheus $${chart}; \
 	$(BIN_DIR)/kubectl-wait-wrapper.sh -n $${namespace_name} \
 		-t deployments \
 		-p "--for=condition=Available --timeout=300s --all deployments" \
 		-t pods \
+		-p "--for=condition=Ready --timeout=300s --all pods"
+	@echo ""
+
+.PHONY: deploy-mariadb-operator
+deploy-mariadb-operator: ## Deploy MariaDB Operator
+	@echo "###################################"
+	@echo "# Running deploy-mariadb-operator #"
+	@echo "###################################"
+	@namespace_name=mariadb-operator; \
+	chart=mariadb-operator/mariadb-operator; \
+	echo -n "Deploying chart $${chart} " && helm show chart $${chart} |grep -E "(^version|^appVersion)" | sort -r | paste -sd ' '; \
+	helm install --namespace $${namespace_name} --create-namespace --wait \
+		mariadb-operator $${chart}; \
+	$(BIN_DIR)/kubectl-wait-wrapper.sh -n $${namespace_name} \
+		-t deployments \
+		-p "--for=condition=Available --timeout=300s --all deployments" \
+		-t pods \
+		-p "--for=condition=Ready --timeout=300s --all pods"
+	@echo ""
+
+.PHONY: deploy-mariadb-instance
+deploy-mariadb-instance: ## Deploy MariaDB Instance
+	@echo "###################################"
+	@echo "# Running deploy-mariadb-instance #"
+	@echo "###################################"
+	kustomize build $(ROOT_DIR)/manifests/mariadb-instance | kubectl apply -f -
+	namespace_name=$(shell sed -rn "s/namespace: (.*)/\1/p" $(ROOT_DIR)/manifests/mariadb-instance/kustomization.yaml); \
+	$(BIN_DIR)/kubectl-wait-wrapper.sh -n $${namespace_name} \
+		-t deployments \
+		-p "--for=condition=Available --timeout=300s --all deployments" \
+		-t pods \
+		-p "--for=condition=Ready --timeout=300s --all pods" \
+		-t mariadbs \
 		-p "--for=condition=Ready --timeout=300s --all pods"
 	@echo ""
 
@@ -182,11 +213,12 @@ deploy-toolbox: ## Deploy toolbox container
 	@echo "##########################"
 	@echo "# Running deploy-toolbox #"
 	@echo "##########################"
-	@namespace_name=tools; \
-	echo -n "Deploying chart " && helm show chart tlbueno/toolbox |grep -E "(^version|^appVersion)" | sort -r | paste -sd ' '; \
-	helm install --namespace default --wait \
+	@namespace_name=toolbox; \
+	chart=tlbueno/toolbox; \
+	echo -n "Deploying chart $${chart} " && helm show chart $${chart} |grep -E "(^version|^appVersion)" | sort -r | paste -sd ' '; \
+	helm install --namespace $${namespace_name} --create-namespace --wait \
 		--set namespace.name=$${namespace_name} \
-		toolbox tlbueno/toolbox; \
+		toolbox $${chart}; \
 	$(BIN_DIR)/kubectl-wait-wrapper.sh -n $${namespace_name} \
 		-t pods \
 		-p "--for=condition=Ready --timeout=300s --all pods"
@@ -198,11 +230,12 @@ deploy-redhat-operators-catalog: ## Deploy RedHat Operators Catalog
 	@echo "# Running deploy-redhat-operators-catalog #"
 	@echo "###########################################"
 	@namespace_name=olm; \
-	echo -n "Deploying chart " && helm show chart tlbueno/catalog-source-installer |grep -E "(^version|^appVersion)" | sort -r | paste -sd ' '; \
-	helm install --namespace default --wait \
+	chart=tlbueno/catalog-source-installer; \	
+	echo -n "Deploying chart $${chart} " && helm show chart $${chart} |grep -E "(^version|^appVersion)" | sort -r | paste -sd ' '; \
+	helm install --namespace $${namespace_name} --create-namespace --wait \
 		--set catalogSource.namespace=$${namespace_name} \
 		$(REDHAT_CATALOG_IMAGE_PARAM) \
-		redhat-catalog-source tlbueno/catalog-source-installer; \
+		redhat-catalog-source $${chart}; \
 	$(BIN_DIR)/kubectl-wait-wrapper.sh -n $${namespace_name} \
 		-t deployments \
 		-p "--for=condition=Available --timeout=300s --all deployments" \
@@ -238,6 +271,8 @@ add-helm-charts-repos: ## Add helm-charts repos do helm
 	@helm repo add metrics-server https://kubernetes-sigs.github.io/metrics-server/
 	@echo "Adding prometheus-community helm repo"
 	@helm repo add prometheus-community	https://prometheus-community.github.io/helm-charts
+	@echo "Adding mariadb-operator helm repo"
+	@helm repo add mariadb-operator https://mariadb-operator.github.io/mariadb-operator
 	@echo ""
 
 .PHONY: update-helm-charts-repos
@@ -254,7 +289,7 @@ exec-toolbox: ## Execute a shell into the toolbox container
 	@echo "##########################"
 	@echo "# Running exec-toolbox #"
 	@echo "##########################"
-	@kubectl -n tools --stdin --tty exec toolbox -- bash -l
+	@kubectl -n toolbox --stdin --tty exec toolbox -- bash -l
 	@echo ""
 
 ####################

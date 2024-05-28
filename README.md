@@ -10,6 +10,7 @@ The goal of this project is to have a simple way to prepare a kubernetes or open
 - jq
 - kind
 - kubectl
+- kustomize
 - make
 - yq (from https://github.com/mikefarah/yq)
 
@@ -25,7 +26,7 @@ The local cluster is created using kind as you will see below. In the kind confi
     - This target execute most of the targets below.
 
   - prepare-ocp, ie: `make prepare-ocp`
-    - This target execute most of the targets below but skips those which should not be needed on an Openshift cluster
+    - This target execute most of the targets below but skips those which should not be needed on an Openshift cluster.
 
   - create-kind, ie: `make create-kind`
     - Create Kind cluster using the configuration file [kind-config.yaml](local-cluster/kind-config.yaml).
@@ -55,23 +56,29 @@ The local cluster is created using kind as you will see below. In the kind confi
 
   - deploy-prometheus, ie: `make deploy-prometheus`
     - Deploy Prometheus Stack (Prometheus Operator, Prometheus, AlertManager, Node Exporter, Kube State Metrics, Grafana) in `prometheus` namespace.
-    - INGRESS_DOMAIN environment variable can be used to define the ingress domain. It defaults to `localdev`
+    - INGRESS_DOMAIN environment variable can be used to define the ingress domain. It defaults to `localdev`.
+
+  - deploy-mariadb-operator, ie: `make deploy-mariadb-operator`
+    - Deploy Mariadb Operator in `mariadb-operator` namespace.
+
+  - deploy-mariadb-instance, ie: `make deploy-mariadb-instance`
+    - Deploy Mariadb Instance in `mariadb` namespace. It defined the root user password as `root_mariadb`.
 
   - deploy-toolbox, ie: `make deploy-toolbox`
-    - Deploy toolbox container using tlbueno/toolbox using [tlbueno/toolbox](https://github.com/tlbueno/helm-charts/tree/main/charts/toolbox). Toolbox is a simple container image which has a set of tools installed in it. For detail check the [toolbox github repo](https://github.com/tlbueno/toolbox)
+    - Deploy toolbox container using tlbueno/toolbox using [tlbueno/toolbox](https://github.com/tlbueno/helm-charts/tree/main/charts/toolbox). Toolbox is a simple container image which has a set of tools installed in it. For detail check the [toolbox github repo](https://github.com/tlbueno/toolbox).
 
   - deploy-redhat-operators-catalog, ie: `make deploy-redhat-operators-catalog`
     - Deploy RedHat Operators Catalog in `olm` namespace using [tlbueno/catalog-source-installer](https://github.com/tlbueno/helm-charts/tree/main/charts/catalog-source-installer). This target should not be executed on openshift clusters as Openshift already have this package index installed.
     - `REDHAT_CATALOG_IMAGE` environment variable can be used to specify the catalog index image to be used.
 
   - configure-inotify, ie: `make configure-inotify`
-    - Configure sysctl inotify values (requires sudo access). This may be need in some cases for some applications run fine inside the cluster
+    - Configure sysctl inotify values (requires sudo access). This may be need in some cases for some applications run fine inside the cluster.
 
   - add-helm-charts-repos, ie: `make add-helm-charts-repos`
-    - Add helm-charts repos needed by the other targets to helm. May be needed if you are not using the `prepare-k8s` or `prepare-ocp` targets
+    - Add helm-charts repos needed by the other targets to helm. May be needed if you are not using the `prepare-k8s` or `prepare-ocp` targets.
 
   - update-helm-charts-repos, ie: `make update-helm-charts-repos`
-    - Update helm-charts repos. It is useful to get the latest version of charts from the repos. May be needed if you are not using the `prepare-k8s` or `prepare-ocp` targets
+    - Update helm-charts repos. It is useful to get the latest version of charts from the repos. May be needed if you are not using the `prepare-k8s` or `prepare-ocp` targets.
 
   - exec-toolbox, ie: `make exec-toolbox`
     - Execute a shell in the toolbox container.
@@ -81,9 +88,9 @@ The local cluster is created using kind as you will see below. In the kind confi
 
 ### Other tools
 
-- [namespace-data-collector.sh](bin/namespace-data-collector.sh) - A tools to dump kubernetes resources from a namespace. Execute `bin/namespace-data-collector.sh --help` for details
+- [namespace-data-collector.sh](bin/namespace-data-collector.sh) - A tools to dump kubernetes resources from a namespace. Execute `bin/namespace-data-collector.sh --help` for details.
 
-- [kubectl-wait-wrapper.sh](bin/kubectl-wait-wrapper.sh) - A wrapper to kubectl wait command. It is used inside the [Makefile](Makefile). `bin/kubectl-wait-wrapper.sh --help` for details
+- [kubectl-wait-wrapper.sh](bin/kubectl-wait-wrapper.sh) - A wrapper to kubectl wait command. It is used inside the [Makefile](Makefile). `bin/kubectl-wait-wrapper.sh --help` for details.
 
 ## Ingress tips
 
@@ -94,7 +101,7 @@ To use the ingress usually you need to add the ingress address in /etc/host poin
 sudo dnf install dnsmasq
 ```
 
-- Create an dnsmasq configuration, configure dnsmasq to start on system boot and start dnsmasq
+- Create an dnsmasq configuration, configure dnsmasq to start on system boot and start dnsmasq:
 ```sh
 cat - <<EOF > sudo tee /etc/dnsmasq.d/00-local.conf
 address=/localdev/127.0.0.1
@@ -108,7 +115,7 @@ sudo systemctl enable dnsmasq.service
 sudo systemctl start dnsmasq
 ```
 
-- Create an systemd-resolved configuration to forward DNS queries to dnsmasq, restart systemd-resolved
+- Create an systemd-resolved configuration to forward DNS queries to dnsmasq, restart systemd-resolved:
 ```sh
 cat - <<EOF > sudo tee /etc/systemd/resolved.conf
 [Resolve]

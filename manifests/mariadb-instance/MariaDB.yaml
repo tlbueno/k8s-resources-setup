@@ -1,0 +1,14 @@
+apiVersion: k8s.mariadb.com/v1alpha1
+kind: MariaDB
+metadata:
+  name: mariadb
+spec:
+  rootPasswordSecretKeyRef:
+    name: mariadb-secret
+    key: root-password
+  database: mariadb
+  metrics:
+    enabled: true
+  storage:
+    size: 1Gi
+

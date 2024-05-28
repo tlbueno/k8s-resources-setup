@@ -1,0 +1,14 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: mariadb
+resources:
+  - "Namespace.yaml"
+  - "MariaDB.yaml"
+generatorOptions:
+ disableNameSuffixHash: true
+secretGenerator:
+- name: mariadb-secret
+  literals:
+  - root-password=root_mariadb
+  - user-password=user_mariadb
+
