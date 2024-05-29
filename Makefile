@@ -32,7 +32,7 @@ prepare-ocp: add-helm-charts-repos update-helm-charts-repos deploy-cert-manager-
 create-kind: ## Create Kind cluster
 	@if [ ! "$(shell kind get clusters | grep $(KIND_CLUSTER_NAME))" ]; then \
 		tempfile=$(shell mktemp); \
-		cat local-cluster/kind-config.yaml | envsubst > $${tempfile}; \
+		cat $(ROOT_DIR)/local-cluster/kind-config.yaml | envsubst > $${tempfile}; \
 		if [ "$(K8S_VERSION)" != "" ]; then \
 			image_flag="--image kindest/node:$(K8S_VERSION)"; \
 		fi; \
