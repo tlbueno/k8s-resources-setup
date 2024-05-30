@@ -4,7 +4,7 @@ metadata:
   name: mariadb
 spec:
   rootPasswordSecretKeyRef:
-    name: mariadb-secret
+    name: mariadb-root-secret
     key: root-password
   database: mariadb
   metrics:
