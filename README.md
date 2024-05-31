@@ -54,6 +54,9 @@ The local cluster is created using kind as you will see below. In the kind confi
   - deploy-trust-manager-operator, ie: `make deploy-trust-manager-operator`
     - Deploy Trust Manager Operator in `cert-manager` namespace using [jetstack/trust-manager](https://github.com/cert-manager/trust-manager/tree/main/deploy/charts/trust-manager) helm package.
 
+  - deploy-selfsigned-ca, ie: `make deploy-selfsigned-ca`
+    - Deploy a self-signed CA Issuer, a self-signed CA, a CA issuer for the created self-signed CA and a Bundle with the default CAs and the created one. The Bundle uses a copy of the self-signed CA to allow rotation of the CA without issues as suggested by cert-manager/trust-manager documentation.
+
   - deploy-prometheus, ie: `make deploy-prometheus`
     - Deploy Prometheus Stack (Prometheus Operator, Prometheus, AlertManager, Node Exporter, Kube State Metrics, Grafana) in `prometheus` namespace.
     - INGRESS_DOMAIN environment variable can be used to define the ingress domain. It defaults to `localdev`.

@@ -6,6 +6,7 @@ SHELL                         = /usr/bin/env bash
 # root project variables 
 ROOT_DIR                      = $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 BIN_DIR                       = $(ROOT_DIR)/bin
+MANIFESTS_DIR                 = $(ROOT_DIR)/manifests
 
 ### Local cluster variables
 K8S_VERSION                   =           	# if empty kind uses the latest version available on for the installed kind version
@@ -23,10 +24,10 @@ all: help
 ### local cluster targets ###
 #############################
 .PHONY: prepare-k8s
-prepare-k8s: add-helm-charts-repos update-helm-charts-repos deploy-ingress-controller deploy-olm deploy-metrics-server deploy-cert-manager-operator deploy-trust-manager-operator deploy-prometheus deploy-mariadb-operator deploy-mariadb-instance deploy-toolbox ## Deploy the resource for kubernetes cluster
+prepare-k8s: add-helm-charts-repos update-helm-charts-repos deploy-ingress-controller deploy-olm deploy-metrics-server deploy-cert-manager-operator deploy-trust-manager-operator deploy-selfsigned-ca deploy-prometheus deploy-mariadb-operator deploy-mariadb-instance deploy-toolbox ## Deploy the resource for kubernetes cluster
 
 .PHONY: prepare-ocp
-prepare-ocp: add-helm-charts-repos update-helm-charts-repos deploy-cert-manager-operator deploy-trust-manager-operator deploy-prometheus deploy-mariadb-operator deploy-mariadb-instance deploy-toolbox ## Deploy resources for openshift cluster
+prepare-ocp: add-helm-charts-repos update-helm-charts-repos deploy-cert-manager-operator deploy-trust-manager-operator deploy-selfsigned-ca deploy-prometheus deploy-mariadb-operator deploy-mariadb-instance deploy-toolbox ## Deploy resources for openshift cluster
 
 .PHONY: create-kind
 create-kind: ## Create Kind cluster
@@ -111,6 +112,7 @@ endif
 	@echo "############################################################"
 	@namespace_name=olm; \
 	kubectl label --overwrite ns $${namespace_name} pod-security.kubernetes.io/enforce=privileged; \
+	sleep 10; \
 	$(BIN_DIR)/kubectl-wait-wrapper.sh -n $${namespace_name} \
 		-t deployments \
 		-p "--for=condition=Available --timeout=300s --all deployments" \
@@ -145,6 +147,8 @@ deploy-trust-manager-operator: ## Deploy Trust Manager Operator
 	chart=jetstack/trust-manager; \
 	echo -n "Deploying chart $${chart} " && helm show chart $${chart} |grep -E "(^version|^appVersion)" | sort -r | paste -sd ' '; \
 	helm install --namespace $${namespace_name} --create-namespace --wait \
+		--set secretTargets.enabled=true \
+		--set secretTargets.authorizedSecrets={ca-bundle} \
 		trust-manager $${chart}; \
 	$(BIN_DIR)/kubectl-wait-wrapper.sh -n $${namespace_name} \
 		-t deployments \
@@ -152,6 +156,25 @@ deploy-trust-manager-operator: ## Deploy Trust Manager Operator
 		-t pods \
 		-p "--for=condition=Ready --timeout=300s --all pods"
 	@echo "" 
+
+.PHONY: deploy-selfsigned-ca
+deploy-selfsigned-ca: ## Deploy Self-Signed Certificate Authority
+	@echo "################################"
+	@echo "# Running deploy-selfsigned-ca #"
+	@echo "################################"
+	@namespace_name=cert-manager; \
+	kustomize build $(MANIFESTS_DIR)/cert-manager | kubectl -n $${namespace_name} apply -f - ; \
+	$(BIN_DIR)/kubectl-wait-wrapper.sh -n $${namespace_name} \
+		-t certificates \
+		-p "--for=condition=Ready --timeout=300s --all certificates" \
+		-t clusterissuers \
+		-p "--for=condition=Ready --timeout=300s --all clusterissuers"; \
+	kubectl get secret selfsigned-ca-root-secret --namespace $${namespace_name} -o yaml | sed -E -e 's/name: .+/name: selfsigned-ca-root-secret-copy/' | kubectl apply -f - ; \
+	kubectl apply --namespace $${namespace_name} -f $(MANIFESTS_DIR)/cert-manager/Bundle-ca-bundle.yaml; \
+	$(BIN_DIR)/kubectl-wait-wrapper.sh -n $${namespace_name} \
+		-t bundles \
+		-p "--for=condition=Synced --timeout=300s --all bundles"
+	@echo ""
 
 .PHONY: deploy-prometheus
 deploy-prometheus: ## Deploy Prometheus Stack
@@ -197,8 +220,8 @@ deploy-mariadb-instance: ## Deploy MariaDB Instance
 	@echo "###################################"
 	@echo "# Running deploy-mariadb-instance #"
 	@echo "###################################"
-	kustomize build $(ROOT_DIR)/manifests/mariadb-instance | kubectl apply -f -
-	namespace_name=$(shell sed -rn "s/namespace: (.*)/\1/p" $(ROOT_DIR)/manifests/mariadb-instance/kustomization.yaml); \
+	kustomize build $(MANIFESTS_DIR)/mariadb-instance | kubectl apply -f -
+	namespace_name=$(shell sed -rn "s/namespace: (.*)/\1/p" $(MANIFESTS_DIR)/mariadb-instance/kustomization.yaml); \
 	$(BIN_DIR)/kubectl-wait-wrapper.sh -n $${namespace_name} \
 		-t deployments \
 		-p "--for=condition=Available --timeout=300s --all deployments" \
