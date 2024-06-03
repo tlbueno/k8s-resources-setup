@@ -1,24 +1,24 @@
 # k8s-resources-setup
-A set resources to easily get deployed on kubernetes or openshift cluster
+A set resources to get deployed on kubernetes or openshift cluster
 
-The goal of this project is to have a simple way to prepare a kubernetes or openshift cluster with some basic resources/tools for tests, experiments and proof of concepts. 
+The goal of this project is to have a simple way to prepare a kubernetes or openshift cluster with some basic resources/tools for tests, experiments and proof of concepts. Initially it contains the resources for experiment the [ArtemisCloud operator](https://artemiscloud.io)
 
 ### Require tools
 
 - curl
-- helm
+- [helm]
 - jq
-- kind
+- [kind]
 - kubectl
-- kustomize
+- [kustomize]
 - make
-- yq (from https://github.com/mikefarah/yq)
+- [yq]
 
 ### Local cluster vs remote cluster
 
-In the targets list below, you will see what can be deployed in the cluster. There is a target that creates a local cluster but this is not a requirement. If you have a remote cluster, since you are logged in it, it will work without issues. If you are running an Openshift cluster there are targets which may not apply, like the ones which deploys olm and redhat operators catalog.
+In the [targets list below](#make-targets), you will see what can be deployed in the cluster. There is a target that creates a local cluster but this is not a requirement. If you have a remote cluster, since you are logged in it, it will work without issues. If you are running an Openshift cluster there are targets which may not apply, like the ones which deploys `olm` and `redhat operators catalog`.
 
-The local cluster is created using kind as you will see below. In the kind configuration, there is an extra mount to mount the `${HOME}/.docker/config.json`. This file allows kind to use the registries credentials from docker. As an example, if you are logged in on a private registry like `registry.redhat.io` in docker, kind will be able to use images from there.
+The local cluster is created using [kind] as you will see below. In the kind configuration, [kind-config.yaml], there is an extra mount to mount the `${HOME}/.docker/config.json`. This file allows kind to use the registries credentials from docker. As an example, if you are logged in on a private registry like `registry.redhat.io` in docker, kind will be able to use images from there.
 
 ### Make targets
 
@@ -29,7 +29,7 @@ The local cluster is created using kind as you will see below. In the kind confi
     - This target execute most of the targets below but skips those which should not be needed on an Openshift cluster.
 
   - create-kind, ie: `make create-kind`
-    - Create Kind cluster using the configuration file [kind-config.yaml](local-cluster/kind-config.yaml).
+    - Create [kind] cluster using the configuration file [kind-config.yaml].
 
     - K8S_VERSION environment variable can be used to define the kubernetes version kind will use. ie: `make create-kind K8S_VERSION=v1.30.0`. If the K8S_VERSION is not provide kind uses the latest version available on for the installed kind version.
 
@@ -39,36 +39,37 @@ The local cluster is created using kind as you will see below. In the kind confi
     - delete the local cluster.
 
   - deploy-ingress-controller, ie: `make deploy-ingress-controller`
-    - Deploy Ingress controller in `ingress-nginx` namespace using [ingress-nginx/ingress-nginx](https://github.com/kubernetes/ingress-nginx/tree/main/charts/ingress-nginx) helm package. Please refer to the target in the [Makefile](Makefile) to see the options used.
+    - Deploy [Ingress controller](https://kubernetes.io/docs/concepts/services-networking/ingress-controllers/) in `ingress-nginx` namespace using [ingress-nginx/ingress-nginx](https://github.com/kubernetes/ingress-nginx/tree/main/charts/ingress-nginx) helm chart. Please refer to the target in the [Makefile](Makefile) to see the options used.
 
   - deploy-metrics-server, ie: `make deploy-metrics-server`
-    - Deploy Kubernetes Metric Server in `kube-system` namespace using [metrics-server/metrics-server](https://github.com/kubernetes-sigs/metrics-server/tree/master/charts/metrics-server) helm package.
+    - Deploy Kubernetes [Metric Server](https://kubernetes-sigs.github.io/metrics-server/) in `kube-system` namespace using [metrics-server/metrics-server](https://github.com/kubernetes-sigs/metrics-server/tree/master/charts/metrics-server) helm chart.
 
   - deploy-olm, ie: `make deploy-olm`
-    - Deploy Operator Lifecycle Manager (OLM) in `olm` namespace. This target should not be executed on openshift clusters as Openshift already have OLM installed.
-    - OLM_VERSION environment variable can be used to define the OLM version to install otherwise it will install the latest version.
+    - [Deploy Operator Lifecycle Manager (OLM)](https://olm.operatorframework.io/) in `olm` namespace. This target should not be executed on openshift clusters as Openshift already have OLM installed.
+    - OLM_VERSION environment variable can be used to define the OLM version to install otherwise it will install the latest version from [olm github releases](https://github.com/operator-framework/operator-lifecycle-manager/releases)
 
   - deploy-cert-manager-operator, ie: `make deploy-cert-manager-operator`
-    - Deploy Cert Manager Operator in in `cert-manager` namespace using [tlbueno/olm-operator-installer](https://github.com/tlbueno/helm-charts/tree/main/charts/olm-operator-installer) helm package.
+    - [Deploy Cert Manager Operator](https://cert-manager.io/docs/) in in `cert-manager` namespace using [tlbueno/olm-operator-installer](https://github.com/tlbueno/helm-charts/tree/main/charts/olm-operator-installer) helm chart.
 
   - deploy-trust-manager-operator, ie: `make deploy-trust-manager-operator`
-    - Deploy Trust Manager Operator in `cert-manager` namespace using [jetstack/trust-manager](https://github.com/cert-manager/trust-manager/tree/main/deploy/charts/trust-manager) helm package.
+    - [Deploy Trust Manager Operator](https://cert-manager.io/docs/trust/trust-manager/) in `cert-manager` namespace using [jetstack/trust-manager](https://github.com/cert-manager/trust-manager/tree/main/deploy/charts/trust-manager) helm chart.
 
   - deploy-selfsigned-ca, ie: `make deploy-selfsigned-ca`
-    - Deploy a self-signed CA Issuer, a self-signed CA, a CA issuer for the created self-signed CA and a Bundle with the default CAs and the created one. The Bundle uses a copy of the self-signed CA to allow rotation of the CA without issues as suggested by cert-manager/trust-manager documentation.
+    - Deploy a self-signed CA Issuer, a self-signed CA, a CA issuer for the created self-signed CA and a Bundle with the default CAs and the created one in the namespace `cert-manager`. The Bundle uses a copy of the self-signed CA to allow rotation of the CA without issues as suggested by cert-manager/trust-manager [documentation](https://cert-manager.io/docs/trust/trust-manager/#cert-manager-integration-intentionally-copying-ca-certificates).
 
   - deploy-prometheus, ie: `make deploy-prometheus`
-    - Deploy Prometheus Stack (Prometheus Operator, Prometheus, AlertManager, Node Exporter, Kube State Metrics, Grafana) in `prometheus` namespace.
+    - Deploy [Prometheus](https://prometheus.io) Stack (Prometheus Operator, Prometheus, AlertManager, Node Exporter, Kube State Metrics, Grafana) in `prometheus` namespace using
+    [prometheus-community/kube-prometheus-stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack) helm chart
     - INGRESS_DOMAIN environment variable can be used to define the ingress domain. It defaults to `localdev`.
 
   - deploy-mariadb-operator, ie: `make deploy-mariadb-operator`
-    - Deploy Mariadb Operator in `mariadb-operator` namespace.
+    - Deploy [Mariadb Operator](https://mariadb.com/kb/en/kubernetes-operators-for-mariadb/) in `mariadb-operator` namespace using [mariadb-operator/mariadb-operator](https://github.com/mariadb-operator/mariadb-operator/tree/main/deploy/charts/mariadb-operator) helm chart.
 
   - deploy-mariadb-instance, ie: `make deploy-mariadb-instance`
-    - Deploy Mariadb Instance in `mariadb` namespace. It defined the root user password as `root_mariadb`.
+    - Deploy Mariadb Instance in `mariadb` namespace using the manifest files from [here](manifests/mariadb-instance). It defined the root user password as `root_mariadb`.
 
   - deploy-toolbox, ie: `make deploy-toolbox`
-    - Deploy toolbox container using tlbueno/toolbox using [tlbueno/toolbox](https://github.com/tlbueno/helm-charts/tree/main/charts/toolbox). Toolbox is a simple container image which has a set of tools installed in it. For detail check the [toolbox github repo](https://github.com/tlbueno/toolbox).
+    - Deploy [toolbox](https://github.com/tlbueno/toolbox) container using tlbueno/toolbox using [tlbueno/toolbox](https://github.com/tlbueno/helm-charts/tree/main/charts/toolbox). Toolbox is a simple container image which has a set of tools installed in it.
 
   - deploy-redhat-operators-catalog, ie: `make deploy-redhat-operators-catalog`
     - Deploy RedHat Operators Catalog in `olm` namespace using [tlbueno/catalog-source-installer](https://github.com/tlbueno/helm-charts/tree/main/charts/catalog-source-installer). This target should not be executed on openshift clusters as Openshift already have this package index installed.
@@ -164,3 +165,8 @@ this.is.another.test.localdev. 0 IN	A	127.0.0.1
 ;; MSG SIZE  rcvd: 74
 ```
 
+[helm]: https://helm.sh
+[kind]: https://kind.sigs.k8s.io
+[kustomize]: https://kustomize.io
+[yq]: https://github.com/mikefarah/yq
+[kind-config.yaml]: local-cluster/kind-config.yaml
