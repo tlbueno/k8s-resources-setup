@@ -4,13 +4,12 @@ metadata:
   name: selfsigned-ca
 spec:
   isCA: true
-  commonName: selfsigned-ca
+  commonName: rootca.localdev
+  subject:
+    organizations:
+    - "www.localdev"
   secretName: selfsigned-ca-root-secret
-  privateKey:
-    algorithm: ECDSA
-    size: 256
   issuerRef:
     name: selfsigned-cluster-issuer
     kind: ClusterIssuer
     group: cert-manager.io
-

@@ -4,15 +4,17 @@ metadata:
   name: ca-bundle
 spec:
   sources:
-  - useDefaultCAs: true
-  - secret:
-      name: "selfsigned-ca-root-secret-copy"
-      key: "tls.crt"
+    - useDefaultCAs: true
+    - secret:
+        name: "selfsigned-ca-root-secret-copy"
+        key: "tls.crt"
   target:
-    configMap:
-      key: "trust-bundle.pem"
     secret:
+      key: "trust-bundle.pem"
+    configMap:
       key: "trust-bundle.pem"
     additionalFormats:
       jks:
-        key: "truststore.jks"
+        key: "trust-bundle.jks"
+      pkcs12:
+        key: "trust-bundle.p12"
