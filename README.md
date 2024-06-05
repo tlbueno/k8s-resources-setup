@@ -1,7 +1,7 @@
 # k8s-resources-setup
 A set resources to get deployed on kubernetes or openshift cluster
 
-The goal of this project is to have a simple way to prepare a kubernetes or openshift cluster with some basic resources/tools for tests, experiments and proof of concepts. Initially it contains the resources for experiment the [ArtemisCloud operator](https://artemiscloud.io)
+The goal of this project is to have a simple way to prepare a kubernetes or openshift cluster with some basic resources/tools for tests, experiments and proof of concepts. It was created to provide the resources to experiment the [ArtemisCloud operator](https://artemiscloud.io) but may be used as a general tool to provision a cluster
 
 ### Require tools
 
