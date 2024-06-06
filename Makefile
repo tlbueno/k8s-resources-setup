@@ -253,7 +253,7 @@ deploy-redhat-operators-catalog: ## Deploy RedHat Operators Catalog
 	@echo "# Running deploy-redhat-operators-catalog #"
 	@echo "###########################################"
 	@namespace_name=olm; \
-	chart=tlbueno/catalog-source-installer; \	
+	chart=tlbueno/catalog-source-installer; \
 	echo -n "Deploying chart $${chart} " && helm show chart $${chart} |grep -E "(^version|^appVersion)" | sort -r | paste -sd ' '; \
 	helm install --namespace $${namespace_name} --create-namespace --wait \
 		--set catalogSource.namespace=$${namespace_name} \
