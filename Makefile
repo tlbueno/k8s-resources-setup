@@ -118,6 +118,7 @@ deploy-ingress-controller: ## Deploy Ingress controller in the cluster
 	echo -n "Deploying chart $${chart} " && helm show chart $${chart} |grep -E "(^version|^appVersion)" | sort -r | paste -sd ' '; \
 	helm install --namespace $${namespace_name} --create-namespace --wait \
 		--set namespaceOverride=$${namespace_name} \
+		--set controller.extraArgs.enable-ssl-passthrough= \
 		--set controller.allowSnippetAnnotations=true \
 		--set controller.ingressClassResource.default=true \
 		--values https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/hack/manifest-templates/provider/kind/values.yaml \
