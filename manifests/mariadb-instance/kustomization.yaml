@@ -7,7 +7,7 @@ namespace: mariadb
 generatorOptions:
   disableNameSuffixHash: true
 secretGenerator:
-  - name: mariadb-root-secret
+  - name: mariadb-root
     literals:
-      - root-password=root_mariadb
+      - password=root_mariadb
 

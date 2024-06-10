@@ -14,8 +14,34 @@ KIND_CLUSTER_NAME             = local-k8s
 
 INGRESS_DOMAIN                = localdev
 
-ifdef REDHAT_CATALOG_IMAGE
-    $(eval REDHAT_CATALOG_IMAGE_PARAM = "${REDHAT_CATALOG_IMAGE}")
+# Prepare targets variables
+PREPARE_K8S_TARGETS           = add-helm-charts-repos \
+                                update-helm-charts-repos \
+								deploy-ingress-controller \
+								deploy-olm deploy-metrics-server \
+								deploy-cert-manager-operator \
+								deploy-trust-manager-operator \
+								deploy-selfsigned-ca \
+								deploy-prometheus \
+								deploy-mariadb-operator \
+								deploy-mariadb-instance \
+								deploy-toolbox
+
+PREPARE_OCP_TARGETS           = add-helm-charts-repos \
+								update-helm-charts-repos \
+								deploy-cert-manager-operator \
+								deploy-trust-manager-operator \
+								deploy-selfsigned-ca \
+								deploy-prometheus \
+								deploy-mariadb-operator \
+								deploy-mariadb-instance \
+								deploy-toolbox
+
+PREPARE_TARGETS               =
+SKIP_TARGETS                  =
+
+ifneq ($(REDHAT_CATALOG_IMAGE),)
+    $(eval REDHAT_CATALOG_IMAGE_PARAM = --set catalogSource.image=${REDHAT_CATALOG_IMAGE})
 endif
 
 all: help
@@ -23,11 +49,39 @@ all: help
 #############################
 ### local cluster targets ###
 #############################
-.PHONY: prepare-k8s
-prepare-k8s: add-helm-charts-repos update-helm-charts-repos deploy-ingress-controller deploy-olm deploy-metrics-server deploy-cert-manager-operator deploy-trust-manager-operator deploy-selfsigned-ca deploy-prometheus deploy-mariadb-operator deploy-mariadb-instance deploy-toolbox ## Deploy the resource for kubernetes cluster
 
-.PHONY: prepare-ocp
-prepare-ocp: add-helm-charts-repos update-helm-charts-repos deploy-cert-manager-operator deploy-trust-manager-operator deploy-selfsigned-ca deploy-prometheus deploy-mariadb-operator deploy-mariadb-instance deploy-toolbox ## Deploy resources for openshift cluster
+.PHONY: .setK8SPrepareTargets
+.setK8SPrepareTargets:
+	$(eval PREPARE_TARGETS = $(PREPARE_K8S_TARGETS))
+
+.PHONY: .setOCPPrepareTargets
+.setOCPPrepareTargets:
+	$(eval PREPARE_TARGETS = $(PREPARE_OCP_TARGETS))
+
+.PHONY: .runPrepare
+.runPrepare:
+	@for t in $(PREPARE_TARGETS); do \
+    	skip=false; \
+    	for s in $(SKIP_TARGETS); do \
+        	if [[ "$${s}" == "$${t}" ]]; then \
+            	skip="true"; \
+        	fi; \
+    	done; \
+    	if [[ "$${skip}" == "false" ]]; then \
+			echo "Executing target $${t}"; \
+			$(MAKE) $${t} INGRESS_DOMAIN=$(INGRESS_DOMAIN); \
+		else \
+			echo "Skipping target $${t}"; \
+    	fi; \
+		echo ""; \
+	done
+	@echo ""
+
+.PHONY: prepare-k8s
+prepare-k8s: .setK8SPrepareTargets .runPrepare ## Deploy the resource for kubernetes cluster
+
+ .PHONY: prepare-ocp
+prepare-ocp: .setOCPPrepareTargets .runPrepare ## Deploy resources for openshift cluster
 
 .PHONY: create-kind
 create-kind: ## Create Kind cluster
@@ -64,7 +118,6 @@ deploy-ingress-controller: ## Deploy Ingress controller in the cluster
 	echo -n "Deploying chart $${chart} " && helm show chart $${chart} |grep -E "(^version|^appVersion)" | sort -r | paste -sd ' '; \
 	helm install --namespace $${namespace_name} --create-namespace --wait \
 		--set namespaceOverride=$${namespace_name} \
-		--set controller.extraArgs.enable-ssl-passthrough= \
 		--set controller.allowSnippetAnnotations=true \
 		--set controller.ingressClassResource.default=true \
 		--values https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/hack/manifest-templates/provider/kind/values.yaml \
@@ -148,7 +201,6 @@ deploy-trust-manager-operator: ## Deploy Trust Manager Operator
 	echo -n "Deploying chart $${chart} " && helm show chart $${chart} |grep -E "(^version|^appVersion)" | sort -r | paste -sd ' '; \
 	helm install --namespace $${namespace_name} --create-namespace --wait \
 		--set secretTargets.enabled=true \
-		--set secretTargets.authorizedSecrets={ca-bundle} \
 		trust-manager $${chart}; \
 	$(BIN_DIR)/kubectl-wait-wrapper.sh -n $${namespace_name} \
 		-t deployments \
@@ -169,11 +221,7 @@ deploy-selfsigned-ca: ## Deploy Self-Signed Certificate Authority
 		-p "--for=condition=Ready --timeout=300s --all certificates" \
 		-t clusterissuers \
 		-p "--for=condition=Ready --timeout=300s --all clusterissuers"; \
-	kubectl get secret selfsigned-ca-root-secret --namespace $${namespace_name} -o yaml | sed -E -e 's/name: .+/name: selfsigned-ca-root-secret-copy/' | kubectl apply -f - ; \
-	kubectl apply --namespace $${namespace_name} -f $(MANIFESTS_DIR)/cert-manager/Bundle-ca-bundle.yaml; \
-	$(BIN_DIR)/kubectl-wait-wrapper.sh -n $${namespace_name} \
-		-t bundles \
-		-p "--for=condition=Synced --timeout=300s --all bundles"
+	kubectl get secret selfsigned-ca-root-secret --namespace $${namespace_name} -o yaml | sed -E -e 's/name: .+/name: selfsigned-ca-root-secret-copy/' | kubectl apply -f -
 	@echo ""
 
 .PHONY: deploy-prometheus

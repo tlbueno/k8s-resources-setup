@@ -23,10 +23,10 @@ The local cluster is created using [kind] as you will see below. In the kind con
 ### Make targets
 
   - prepare-k8s, ie: `make prepare-k8s`
-    - This target execute most of the targets below.
+    - This target execute most of the targets below. You can see the list of targets in the [Makefile] under the `PREPARE_K8S_TARGETS` variable. If you want to skip targets, you add execute `make prepare-k8s SKIP_TARGETS="target_a target_b"`.
 
   - prepare-ocp, ie: `make prepare-ocp`
-    - This target execute most of the targets below but skips those which should not be needed on an Openshift cluster.
+    - This target execute most of the targets below but skips those which should not be needed on an Openshift cluster. You can see the list of targets in the [Makefile] under the `PREPARE_OCP_TARGETS` variable. If you want to skip targets, you add execute `make prepare-ocp SKIP_TARGETS="target_a target_b"`.
 
   - create-kind, ie: `make create-kind`
     - Create [kind] cluster using the configuration file [kind-config.yaml].
@@ -55,7 +55,7 @@ The local cluster is created using [kind] as you will see below. In the kind con
     - [Deploy Trust Manager Operator](https://cert-manager.io/docs/trust/trust-manager/) in `cert-manager` namespace using [jetstack/trust-manager](https://github.com/cert-manager/trust-manager/tree/main/deploy/charts/trust-manager) helm chart.
 
   - deploy-selfsigned-ca, ie: `make deploy-selfsigned-ca`
-    - Deploy a self-signed CA Issuer, a self-signed CA, a CA issuer for the created self-signed CA and a Bundle with the default CAs and the created one in the namespace `cert-manager`. The Bundle uses a copy of the self-signed CA to allow rotation of the CA without issues as suggested by cert-manager/trust-manager [documentation](https://cert-manager.io/docs/trust/trust-manager/#cert-manager-integration-intentionally-copying-ca-certificates).
+    - Deploy a self-signed CA Issuer, a self-signed CA, a CA issuer for the created self-signed CA in the namespace `cert-manager`. It also create copy of the self-signed CA to allow rotation of the CA without issues as suggested by cert-manager/trust-manager [documentation](https://cert-manager.io/docs/trust/trust-manager/#cert-manager-integration-intentionally-copying-ca-certificates).
 
   - deploy-prometheus, ie: `make deploy-prometheus`
     - Deploy [Prometheus](https://prometheus.io) Stack (Prometheus Operator, Prometheus, AlertManager, Node Exporter, Kube State Metrics, Grafana) in `prometheus` namespace using
@@ -170,3 +170,4 @@ this.is.another.test.localdev. 0 IN	A	127.0.0.1
 [kustomize]: https://kustomize.io
 [yq]: https://github.com/mikefarah/yq
 [kind-config.yaml]: local-cluster/kind-config.yaml
+[Makefile]: Makefile

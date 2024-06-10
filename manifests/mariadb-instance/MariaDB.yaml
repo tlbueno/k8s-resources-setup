@@ -4,11 +4,11 @@ metadata:
   name: mariadb
 spec:
   rootPasswordSecretKeyRef:
-    name: mariadb-root-secret
-    key: root-password
+    name: mariadb-root
+    key: password
   database: mariadb
   metrics:
     enabled: true
   storage:
-    size: 1Gi
+    size: 5Gi
 
