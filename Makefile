@@ -12,7 +12,7 @@ MANIFESTS_DIR                 = $(ROOT_DIR)/manifests
 K8S_VERSION                   =           	# if empty kind uses the latest version available on for the installed kind version
 KIND_CLUSTER_NAME             = local-k8s
 
-INGRESS_DOMAIN                = localdev
+INGRESS_DOMAIN                = localcluster
 
 # Prepare targets variables
 PREPARE_K8S_TARGETS           = add-helm-charts-repos \
@@ -221,7 +221,7 @@ deploy-selfsigned-ca: ## Deploy Self-Signed Certificate Authority
 		-p "--for=condition=Ready --timeout=300s --all certificates" \
 		-t clusterissuers \
 		-p "--for=condition=Ready --timeout=300s --all clusterissuers"; \
-	kubectl get secret selfsigned-ca-root-secret --namespace $${namespace_name} -o yaml | sed -E -e 's/name: .+/name: selfsigned-ca-root-secret-copy/' | kubectl apply -f -
+	kubectl get secret localcluster-selfsigned-ca-certificate --namespace $${namespace_name} -o yaml | sed -E -e 's/name: .+/name: localcluster-selfsigned-ca-certificate-copy/' | kubectl apply -f -
 	@echo ""
 
 .PHONY: deploy-prometheus

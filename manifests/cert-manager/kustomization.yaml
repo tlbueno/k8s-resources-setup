@@ -3,6 +3,6 @@ kind: Kustomization
 namespace: cert-manager
 resources:
   - ClusterIssuer-selfsigned-cluster-issuer.yaml
-  - Certificate-selfsigned-ca.yaml
-  - ClusterIssuer-ca-issuer.yaml
+  - Certificate-localcluster-selfsigned-ca.yaml
+  - ClusterIssuer-localcluster-selfsigned-ca-issuer.yaml
 

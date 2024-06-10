@@ -55,12 +55,12 @@ The local cluster is created using [kind] as you will see below. In the kind con
     - [Deploy Trust Manager Operator](https://cert-manager.io/docs/trust/trust-manager/) in `cert-manager` namespace using [jetstack/trust-manager](https://github.com/cert-manager/trust-manager/tree/main/deploy/charts/trust-manager) helm chart.
 
   - deploy-selfsigned-ca, ie: `make deploy-selfsigned-ca`
-    - Deploy a self-signed CA Issuer, a self-signed CA, a CA issuer for the created self-signed CA in the namespace `cert-manager`. It also create copy of the self-signed CA to allow rotation of the CA without issues as suggested by cert-manager/trust-manager [documentation](https://cert-manager.io/docs/trust/trust-manager/#cert-manager-integration-intentionally-copying-ca-certificates).
+    - Deploy a self-signed CA Issuer, a self-signed CA and a CA issuer for the created self-signed CA in the namespace `cert-manager`. It also create copy of the self-signed CA to allow rotation of the CA without issues as suggested by cert-manager/trust-manager [documentation](https://cert-manager.io/docs/trust/trust-manager/#cert-manager-integration-intentionally-copying-ca-certificates).
 
   - deploy-prometheus, ie: `make deploy-prometheus`
     - Deploy [Prometheus](https://prometheus.io) Stack (Prometheus Operator, Prometheus, AlertManager, Node Exporter, Kube State Metrics, Grafana) in `prometheus` namespace using
     [prometheus-community/kube-prometheus-stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack) helm chart
-    - INGRESS_DOMAIN environment variable can be used to define the ingress domain. It defaults to `localdev`.
+    - INGRESS_DOMAIN environment variable can be used to define the ingress domain. It defaults to `localcluster`.
 
   - deploy-mariadb-operator, ie: `make deploy-mariadb-operator`
     - Deploy [Mariadb Operator](https://mariadb.com/kb/en/kubernetes-operators-for-mariadb/) in `mariadb-operator` namespace using [mariadb-operator/mariadb-operator](https://github.com/mariadb-operator/mariadb-operator/tree/main/deploy/charts/mariadb-operator) helm chart.
@@ -98,7 +98,7 @@ The local cluster is created using [kind] as you will see below. In the kind con
 
 ## Ingress tips
 
-To use the ingress usually you need to add the ingress address in /etc/host pointing to the cluster ingress entrypoint. ie, in the kind local cluster, you should point my-app.my-domain to the address 127.0.0.1. If you have multiple ingress addresses it is a boring task to do and manage. Another possible solution is to use an local DNS server to handle it. Below I show the steps to configure the dnsmasq DNS server to handle any subdomain of my main local domain, `localdev`. The configuration was based on Fedora 40 and it may change on other versions or other distributions.
+To use the ingress usually you need to add the ingress address in /etc/host pointing to the cluster ingress entrypoint. ie, in the kind local cluster, you should point my-app.my-domain to the address 127.0.0.1. If you have multiple ingress addresses it is a boring task to do and manage. Another possible solution is to use an local DNS server to handle it. Below I show the steps to configure the dnsmasq DNS server to handle any subdomain of my main local domain, `localcluster`. The configuration was based on Fedora 40 and it may change on other versions or other distributions.
 
 - Install dnsmasq
 ```sh
@@ -108,7 +108,7 @@ sudo dnf install dnsmasq
 - Create an dnsmasq configuration, configure dnsmasq to start on system boot and start dnsmasq:
 ```sh
 cat - <<EOF > sudo tee /etc/dnsmasq.d/00-local.conf
-address=/localdev/127.0.0.1
+address=/localcluster/127.0.0.1
 no-resolv
 EOF
 ```
@@ -124,28 +124,28 @@ sudo systemctl start dnsmasq
 cat - <<EOF > sudo tee /etc/systemd/resolved.conf
 [Resolve]
 DNS=127.0.0.1
-Domains=~localdev
+Domains=~localcluster
 EOF
 ```
 ```sh
 sudo systemctl restart systemd-resolved.service
 ```
 
-- Check if it is working by trying to ping or resolve any domain under `localdev`, ie:
+- Check if it is working by trying to ping or resolve any domain under `localcluster`, ie:
 ```sh
-ping this.is.a.test.localdev -c 2
-PING this.is.a.test.localdev (127.0.0.1) 56(84) bytes of data.
+ping this.is.a.test.localcluster -c 2
+PING this.is.a.test.localcluster (127.0.0.1) 56(84) bytes of data.
 64 bytes from localhost (127.0.0.1): icmp_seq=1 ttl=64 time=0.017 ms
 64 bytes from localhost (127.0.0.1): icmp_seq=2 ttl=64 time=0.023 ms
 
---- this.is.a.test.localdev ping statistics ---
+--- this.is.a.test.localcluster ping statistics ---
 2 packets transmitted, 2 received, 0% packet loss, time 1021ms
 rtt min/avg/max/mdev = 0.017/0.020/0.023/0.003 ms
 ```
 ```sh
-dig this.is.another.test.localdev
+dig this.is.another.test.localcluster
 
-; <<>> DiG 9.18.26 <<>> this.is.another.test.localdev
+; <<>> DiG 9.18.26 <<>> this.is.another.test.localcluster
 ;; global options: +cmd
 ;; Got answer:
 ;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 48062
@@ -154,10 +154,10 @@ dig this.is.another.test.localdev
 ;; OPT PSEUDOSECTION:
 ; EDNS: version: 0, flags:; udp: 65494
 ;; QUESTION SECTION:
-;this.is.another.test.localdev.	IN	A
+;this.is.another.test.localcluster.	IN	A
 
 ;; ANSWER SECTION:
-this.is.another.test.localdev. 0 IN	A	127.0.0.1
+this.is.another.test.localcluster. 0 IN	A	127.0.0.1
 
 ;; Query time: 1 msec
 ;; SERVER: 127.0.0.53#53(127.0.0.53) (UDP)
