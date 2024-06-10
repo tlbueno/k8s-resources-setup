@@ -156,39 +156,113 @@ echo "Collecting namespace details"
 kubectl get namespace "${_arg_namespace}" -o yaml > "${DATA_DIR}/namespace.yaml"
 
 RESOURCES=(
-	activemqartemises
-	catalogsources
-	clusterrolebindings
-	clusterroles
-	clusterserviceversions
+	# kubernetes
+	apiservices.apiregistration.k8s.io
+	clusterrolebindings.rbac.authorization.k8s.io
+	clusterroles.rbac.authorization.k8s.io
 	configmaps
-	customresourcedefinitions
-	deployments
+	controllerrevisions.apps
+	cronjobs.batch
+	csidrivers.storage.k8s.io
+	csinodes.storage.k8s.io
+	csistoragecapacities.storage.k8s.io
+	customresourcedefinitions.apiextensions.k8s.io
+	daemonsets.apps
+	deployments.apps
 	endpoints
-	ingresses
-	installplans
-	networkpolicies
-	operatorgroups
+	endpointslices.discovery.k8s.io
+	events
+	events.events.k8s.io
+	flowschemas.flowcontrol.apiserver.k8s.io
+	horizontalpodautoscalers.autoscaling
+	ingressclasses.networking.k8s.io
+	ingresses.networking.k8s.io
+	jobs.batch
+	leases.coordination.k8s.io
+	limitranges
+	mutatingwebhookconfigurations.admissionregistration.k8s.io
+	namespaces
+	networkpolicies.networking.k8s.io
+	nodes
+	nodes.metrics.k8s.io
 	persistentvolumeclaims
 	persistentvolumes
-	poddisruptionbudgets
+	poddisruptionbudgets.policy
 	pods
-	replicasets
-	rolebindings
-	roles
-	routes
+	pods.metrics.k8s.io
+	podtemplates
+	priorityclasses.scheduling.k8s.io
+	prioritylevelconfigurations.flowcontrol.apiserver.k8s.io
+	replicasets.apps
+	replicationcontrollers
+	resourcequotas
+	rolebindings.rbac.authorization.k8s.io
+	roles.rbac.authorization.k8s.io
+	runtimeclasses.node.k8s.io
 	secrets
 	serviceaccounts
+	servicemonitors.monitoring.coreos.com
 	services
-	statefulsets
-	subscriptions
+	statefulsets.apps
+	storageclasses.storage.k8s.io
+	validatingadmissionpolicies.admissionregistration.k8s.io
+	validatingadmissionpolicybindings.admissionregistration.k8s.io
+	validatingwebhookconfigurations.admissionregistration.k8s.io
+	volumeattachments.storage.k8s.io
+	# openshift
+	routes
+	# prometheus
+	alertmanagerconfigs.monitoring.coreos.com
+	alertmanagers.monitoring.coreos.com
+	podmonitors.monitoring.coreos.com
+	probes.monitoring.coreos.com
+	prometheusagents.monitoring.coreos.com
+	prometheuses.monitoring.coreos.com
+	prometheusrules.monitoring.coreos.com
+	scrapeconfigs.monitoring.coreos.com
+	servicemonitors.monitoring.coreos.com
+	thanosrulers.monitoring.coreos.com
+	# operator lifecycle manager (olm)
+	catalogsources.operators.coreos.com
+	clusterserviceversions.operators.coreos.com
+	installplans.operators.coreos.com
+	olmconfigs.operators.coreos.com
+	operatorconditions.operators.coreos.com
+	operatorgroups.operators.coreos.com
+	operators.operators.coreos.com
+	packagemanifests.packages.operators.coreos.com
+	subscriptions.operators.coreos.com
+	# mariadb
+	backups.k8s.mariadb.com
+	connections.k8s.mariadb.com
+	databases.k8s.mariadb.com
+	grants.k8s.mariadb.com
+	mariadbs.k8s.mariadb.com
+	maxscales.k8s.mariadb.com
+	restores.k8s.mariadb.com
+	sqljobs.k8s.mariadb.com
+	users.k8s.mariadb.com
+	# activeMQArtemis
+	activemqartemisaddresses.broker.amq.io
+	activemqartemises.broker.amq.io
+	activemqartemisscaledowns.broker.amq.io
+	activemqartemissecurities.broker.amq.io
+	# cert-manager and trust-manager
+	bundles.trust.cert-manager.io
+	certificaterequests.cert-manager.io
+	certificates.cert-manager.io
+	certificatesigningrequests.certificates.k8s.io
+	challenges.acme.cert-manager.io
+	clusterissuers.cert-manager.io
+	issuers.cert-manager.io
+	orders.acme.cert-manager.io
 )
 
 for resource_type in "${RESOURCES[@]}"; do
 	# get the list of resource for the given resource type
-    resource_list=$(kubectl get "${resource_type}" -n "${_arg_namespace}" -o name 2>&1 || true)
+    resource_list=$(kubectl get "${resource_type}" -n "${_arg_namespace}" -o name 2>/dev/null || true)
 
-    if [ "${resource_list}" ] && [[ ! "${resource_list}" == *"the server doesn't have a resource type"* ]]; then
+    if [ "${resource_list}" ] && [[ ! "${resource_list}" == *"/<unknown>"* ]]; then
         echo "Collecting data for resource type ${resource_type}"
 
 		# create resource type dir
