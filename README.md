@@ -5,6 +5,7 @@ The goal of this project is to have a simple way to prepare a kubernetes or open
 
 ### Require tools
 
+- base64
 - curl
 - [helm]
 - jq
@@ -92,9 +93,11 @@ The local cluster is created using [kind] as you will see below. In the kind con
 
 ### Other tools
 
-- [namespace-data-collector.sh](bin/namespace-data-collector.sh) - A tools to dump kubernetes resources from a namespace. Execute `bin/namespace-data-collector.sh --help` for details.
+- [namespace-data-collector.sh](bin/namespace-data-collector.sh) - A tool to dump kubernetes resources from a namespace. Execute `bin/namespace-data-collector.sh --help` for details.
 
 - [kubectl-wait-wrapper.sh](bin/kubectl-wait-wrapper.sh) - A wrapper to kubectl wait command. It is used inside the [Makefile](Makefile). `bin/kubectl-wait-wrapper.sh --help` for details.
+
+- [dump-certificate.sh](bin/dump-certificate.sh) - A tool do dump cert-manager certificate. Execute `bin/dump-certificate.sh --help` for details. In addition with a tool like certtool you can print certificate details like: `bin/dump-certificate.sh -n cert-manager -c localcluster-selfsigned-ca-certificate -k tls.crt | certtool -i`
 
 ## Ingress tips
 
