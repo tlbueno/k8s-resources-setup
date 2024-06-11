@@ -2,7 +2,8 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: cert-manager
 resources:
-  - ClusterIssuer-selfsigned-cluster-issuer.yaml
-  - Certificate-localcluster-selfsigned-ca.yaml
-  - ClusterIssuer-localcluster-selfsigned-ca-issuer.yaml
+  - Secret-localcluster-selfsigned-ca-certificate-keystore-password.yaml
+  - ClusterIssuer-localcluster-selfsigned-cluster-issuer.yaml
+  - Certificate-localcluster-selfsigned-ca-certificate.yaml
+  - ClusterIssuer-localcluster-selfsigned-ca-cluster-issuer.yaml
 

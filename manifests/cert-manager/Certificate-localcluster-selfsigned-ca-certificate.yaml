@@ -1,0 +1,26 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: localcluster-selfsigned-ca-certificate
+spec:
+  isCA: true
+  literalSubject: CN=ca.localcluster
+  privateKey:
+    algorithm: ECDSA
+  keystores:
+    jks:
+      create: true
+      passwordSecretRef:
+        name: localcluster-selfsigned-ca-certificate-keystore-password
+        key: password
+    pkcs12:
+      create: true
+      profile: Modern2023
+      passwordSecretRef:
+        name: localcluster-selfsigned-ca-certificate-keystore-password
+        key: password
+  secretName: localcluster-selfsigned-ca-certificate
+  issuerRef:
+    name: localcluster-selfsigned-cluster-issuer
+    kind: ClusterIssuer
+    group: cert-manager.io
