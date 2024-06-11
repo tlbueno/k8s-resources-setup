@@ -110,9 +110,9 @@ delete-local-cluster: ## delete local cluster
 ######################################
 .PHONY: deploy-ingress-controller
 deploy-ingress-controller: ## Deploy Ingress controller in the cluster
-	@echo "#####################################"
-	@echo "# Running deploy-ingress-controller #"
-	@echo "#####################################"
+	@echo ""
+	@echo "# Running $(@) #"
+	@echo ""
 	@namespace_name=ingress-nginx; \
 	chart=ingress-nginx/ingress-nginx; \
 	echo -n "Deploying chart $${chart} " && helm show chart $${chart} |grep -E "(^version|^appVersion)" | sort -r | paste -sd ' '; \
@@ -130,9 +130,9 @@ deploy-ingress-controller: ## Deploy Ingress controller in the cluster
 
 .PHONY: deploy-metrics-server
 deploy-metrics-server: ## Deploy Kubernetes Metric Server
-	@echo "################################"
-	@echo "# Running deploy-metrics-server #"
-	@echo "################################"
+	@echo ""
+	@echo "# Running $(@) #"
+	@echo ""
 	@namespace_name=kube-system; \
 	chart=metrics-server/metrics-server; \
 	echo -n "Deploying chart $${chart} " && helm show chart $${chart} |grep -E "(^version|^appVersion)" | sort -r | paste -sd ' '; \
@@ -148,9 +148,9 @@ deploy-metrics-server: ## Deploy Kubernetes Metric Server
 
 .PHONY: deploy-olm
 deploy-olm: ## Deploy Operator Lifecycle Manager (OLM) in the cluster
-	@echo "#######################"
-	@echo "# Running deploy-olm #"
-	@echo "#######################"
+	@echo ""
+	@echo "# Running $(@) #"
+	@echo ""
 ifndef OLM_VERSION
 	$(eval OLM_VERSION = $(shell curl -s https://api.github.com/repos/operator-framework/operator-lifecycle-manager/releases/latest | jq -cr .tag_name))
 endif
@@ -176,9 +176,9 @@ endif
 
 .PHONY: deploy-cert-manager-operator
 deploy-cert-manager-operator: ## Deploy Cert Manager Operator
-	@echo "########################################"
-	@echo "# Running deploy-cert-manager-operator #"
-	@echo "########################################"
+	@echo ""
+	@echo "# Running $(@) #"
+	@echo ""
 	@namespace_name=cert-manager; \
 	chart=tlbueno/olm-operator-installer; \
 	echo -n "Deploying chart $${chart} " && helm show chart $${chart} |grep -E "(^version|^appVersion)" | sort -r | paste -sd ' '; \
@@ -194,9 +194,9 @@ deploy-cert-manager-operator: ## Deploy Cert Manager Operator
 
 .PHONY: deploy-trust-manager-operator
 deploy-trust-manager-operator: ## Deploy Trust Manager Operator
-	@echo "#########################################"
-	@echo "# Running deploy-trust-manager-operator #"
-	@echo "#########################################"
+	@echo ""
+	@echo "# Running $(@) #"
+	@echo ""
 	@namespace_name=cert-manager; \
 	chart=jetstack/trust-manager; \
 	echo -n "Deploying chart $${chart} " && helm show chart $${chart} |grep -E "(^version|^appVersion)" | sort -r | paste -sd ' '; \
@@ -208,13 +208,13 @@ deploy-trust-manager-operator: ## Deploy Trust Manager Operator
 		-p "--for=condition=Available --timeout=300s --all deployments" \
 		-t pods \
 		-p "--for=condition=Ready --timeout=300s --all pods"
-	@echo "" 
+	@echo ""
 
 .PHONY: deploy-selfsigned-ca
 deploy-selfsigned-ca: ## Deploy Self-Signed Certificate Authority
-	@echo "################################"
-	@echo "# Running deploy-selfsigned-ca #"
-	@echo "################################"
+	@echo ""
+	@echo "# Running $(@) #"
+	@echo ""
 	@namespace_name=cert-manager; \
 	kustomize build $(MANIFESTS_DIR)/cert-manager | kubectl -n $${namespace_name} apply -f - ; \
 	$(BIN_DIR)/kubectl-wait-wrapper.sh -n $${namespace_name} \
@@ -227,9 +227,9 @@ deploy-selfsigned-ca: ## Deploy Self-Signed Certificate Authority
 
 .PHONY: deploy-prometheus
 deploy-prometheus: ## Deploy Prometheus Stack
-	@echo "#############################"
-	@echo "# Running deploy-prometheus #"
-	@echo "#############################"
+	@echo ""
+	@echo "# Running $(@) #"
+	@echo ""
 	@namespace_name=monitoring; \
 	chart=prometheus-community/kube-prometheus-stack; \
 	echo -n "Deploying chart $${chart} " && helm show chart $${chart} |grep -E "(^version|^appVersion)" | sort -r | paste -sd ' '; \
@@ -249,9 +249,9 @@ deploy-prometheus: ## Deploy Prometheus Stack
 
 .PHONY: deploy-mariadb-operator
 deploy-mariadb-operator: ## Deploy MariaDB Operator
-	@echo "###################################"
-	@echo "# Running deploy-mariadb-operator #"
-	@echo "###################################"
+	@echo ""
+	@echo "# Running $(@) #"
+	@echo ""
 	@namespace_name=mariadb-operator; \
 	chart=mariadb-operator/mariadb-operator; \
 	echo -n "Deploying chart $${chart} " && helm show chart $${chart} |grep -E "(^version|^appVersion)" | sort -r | paste -sd ' '; \
@@ -266,9 +266,9 @@ deploy-mariadb-operator: ## Deploy MariaDB Operator
 
 .PHONY: deploy-mariadb-instance
 deploy-mariadb-instance: ## Deploy MariaDB Instance
-	@echo "###################################"
-	@echo "# Running deploy-mariadb-instance #"
-	@echo "###################################"
+	@echo ""
+	@echo "# Running $(@) #"
+	@echo ""
 	kustomize build $(MANIFESTS_DIR)/mariadb-instance | kubectl apply -f -
 	namespace_name=$(shell sed -rn "s/namespace: (.*)/\1/p" $(MANIFESTS_DIR)/mariadb-instance/kustomization.yaml); \
 	$(BIN_DIR)/kubectl-wait-wrapper.sh -n $${namespace_name} \
@@ -282,9 +282,9 @@ deploy-mariadb-instance: ## Deploy MariaDB Instance
 
 .PHONY: deploy-toolbox
 deploy-toolbox: ## Deploy toolbox container
-	@echo "##########################"
-	@echo "# Running deploy-toolbox #"
-	@echo "##########################"
+	@echo ""
+	@echo "# Running $(@) #"
+	@echo ""
 	@namespace_name=toolbox; \
 	chart=tlbueno/toolbox; \
 	echo -n "Deploying chart $${chart} " && helm show chart $${chart} |grep -E "(^version|^appVersion)" | sort -r | paste -sd ' '; \
@@ -294,13 +294,13 @@ deploy-toolbox: ## Deploy toolbox container
 	$(BIN_DIR)/kubectl-wait-wrapper.sh -n $${namespace_name} \
 		-t pods \
 		-p "--for=condition=Ready --timeout=300s --all pods"
-	@echo "" 
+	@echo ""
 
 .PHONY: deploy-redhat-operators-catalog
 deploy-redhat-operators-catalog: ## Deploy RedHat Operators Catalog
-	@echo "###########################################"
-	@echo "# Running deploy-redhat-operators-catalog #"
-	@echo "###########################################"
+	@echo ""
+	@echo "# Running $(@) #"
+	@echo ""
 	@namespace_name=olm; \
 	chart=tlbueno/catalog-source-installer; \
 	echo -n "Deploying chart $${chart} " && helm show chart $${chart} |grep -E "(^version|^appVersion)" | sort -r | paste -sd ' '; \
@@ -320,9 +320,9 @@ deploy-redhat-operators-catalog: ## Deploy RedHat Operators Catalog
 #############################################
 .PHONY: configure-inotify
 configure-inotify: ## Configure sysctl inotfy values (requires sudo access)
-	@echo "#############################"
-	@echo "# Running configure-inotify #"
-	@echo "#############################"
+	@echo ""
+	@echo "# Running $(@) #"
+	@echo ""
 	@echo "fs.inotify.max_user_watches = 524288" | sudo tee /etc/sysctl.d/98-kind-inotify.conf > /dev/null
 	@echo "fs.inotify.max_user_instances = 512" | sudo tee -a /etc/sysctl.d/98-kind-inotify.conf > /dev/null
 	@sudo sysctl -p --system
@@ -330,9 +330,9 @@ configure-inotify: ## Configure sysctl inotfy values (requires sudo access)
 
 .PHONY: add-helm-charts-repos
 add-helm-charts-repos: ## Add helm-charts repos do helm
-	@echo "#################################"
-	@echo "# Running add-helm-charts-repos #"
-	@echo "#################################"
+	@echo ""
+	@echo "# Running $(@) #"
+	@echo ""
 	@echo "Adding ingress-nginx helm repo"
 	@helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 	@echo "Adding tlbueno helm repo"
@@ -349,18 +349,18 @@ add-helm-charts-repos: ## Add helm-charts repos do helm
 
 .PHONY: update-helm-charts-repos
 update-helm-charts-repos: ## Update helm-charts repos to helm
-	@echo "####################################"
-	@echo "# Running update-helm-charts-repos #"
-	@echo "####################################"
+	@echo ""
+	@echo "# Running $(@) #"
+	@echo ""
 	@echo "updating helm repos"
 	@helm repo update
 	@echo ""
 
 .PHONY: exec-toolbox
 exec-toolbox: ## Execute a shell into the toolbox container
-	@echo "##########################"
-	@echo "# Running exec-toolbox #"
-	@echo "##########################"
+	@echo ""
+	@echo "# Running $(@) #"
+	@echo ""
 	@kubectl -n toolbox --stdin --tty exec toolbox -- bash -l
 	@echo ""
 
