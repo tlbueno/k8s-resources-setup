@@ -122,7 +122,7 @@ deploy-ingress-controller: ## Deploy Ingress controller in the cluster
 		--set controller.allowSnippetAnnotations=true \
 		--set controller.ingressClassResource.default=true \
 		--values https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/hack/manifest-templates/provider/kind/values.yaml \
-		ingress-nginx $${chart}; \
+		ingress-controller $${chart}; \
 	$(BIN_DIR)/kubectl-wait-wrapper.sh -n $${namespace_name} \
 		-t pods \
 		-p "--for=condition=Ready --timeout=90s pod --selector=app.kubernetes.io/component=controller"
@@ -184,7 +184,7 @@ deploy-cert-manager-operator: ## Deploy Cert Manager Operator
 	echo -n "Deploying chart $${chart} " && helm show chart $${chart} |grep -E "(^version|^appVersion)" | sort -r | paste -sd ' '; \
 	helm install --namespace default --create-namespace --wait \
 		--set namespace.name=$${namespace_name} \
-		cert-manager $${chart}; \
+		cert-manager-operator $${chart}; \
 	$(BIN_DIR)/kubectl-wait-wrapper.sh -n $${namespace_name} \
 		-t deployments \
 		-p "--for=condition=Available --timeout=300s --all deployments" \
@@ -202,7 +202,7 @@ deploy-trust-manager-operator: ## Deploy Trust Manager Operator
 	echo -n "Deploying chart $${chart} " && helm show chart $${chart} |grep -E "(^version|^appVersion)" | sort -r | paste -sd ' '; \
 	helm install --namespace $${namespace_name} --create-namespace --wait \
 		--set secretTargets.enabled=true \
-		trust-manager $${chart}; \
+		trust-manager-operator $${chart}; \
 	$(BIN_DIR)/kubectl-wait-wrapper.sh -n $${namespace_name} \
 		-t deployments \
 		-p "--for=condition=Available --timeout=300s --all deployments" \
@@ -307,7 +307,7 @@ deploy-redhat-operators-catalog: ## Deploy RedHat Operators Catalog
 	helm install --namespace $${namespace_name} --create-namespace --wait \
 		--set catalogSource.namespace=$${namespace_name} \
 		$(REDHAT_CATALOG_IMAGE_PARAM) \
-		redhat-catalog-source $${chart}; \
+		redhat-operators-catalog $${chart}; \
 	$(BIN_DIR)/kubectl-wait-wrapper.sh -n $${namespace_name} \
 		-t deployments \
 		-p "--for=condition=Available --timeout=300s --all deployments" \
