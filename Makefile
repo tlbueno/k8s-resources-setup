@@ -239,6 +239,11 @@ deploy-prometheus: ## Deploy Prometheus Stack
 		--set grafana.ingress.hosts="{grafana.$(INGRESS_DOMAIN)}" \
 		--set prometheus.ingress.enabled=true \
 		--set prometheus.ingress.hosts="{prometheus.$(INGRESS_DOMAIN)}" \
+		--set prometheus.prometheusSpec.ruleSelectorNilUsesHelmValues=false \
+		--set prometheus.prometheusSpec.serviceMonitorSelectorNilUsesHelmValues=false \
+		--set prometheus.prometheusSpec.podMonitorSelectorNilUsesHelmValues=false \
+		--set prometheus.prometheusSpec.probeSelectorNilUsesHelmValues=false \
+		--set prometheus.prometheusSpec.scrapeConfigSelectorNilUsesHelmValues=false \
 		prometheus $${chart}; \
 	$(BIN_DIR)/kubectl-wait-wrapper.sh -n $${namespace_name} \
 		-t deployments \
