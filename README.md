@@ -56,7 +56,7 @@ The local cluster is created using [kind] as you will see below. In the kind con
     - [Deploy Trust Manager Operator](https://cert-manager.io/docs/trust/trust-manager/) in `cert-manager` namespace using [jetstack/trust-manager](https://github.com/cert-manager/trust-manager/tree/main/deploy/charts/trust-manager) helm chart.
 
   - deploy-selfsigned-ca, ie: `make deploy-selfsigned-ca`
-    - Deploy a self-signed CA Issuer, a self-signed CA and a CA issuer for the created self-signed CA in the namespace `cert-manager`. It also create copy of the self-signed CA to allow rotation of the CA without issues as suggested by cert-manager/trust-manager [documentation](https://cert-manager.io/docs/trust/trust-manager/#cert-manager-integration-intentionally-copying-ca-certificates).
+    - Deploy a self-signed CA Issuer, a self-signed CA and a CA issuer for the created self-signed CA in the namespace `cert-manager` from [here](manifests/cert-manager). It also create copy of the self-signed CA to allow rotation of the CA without issues as suggested by cert-manager/trust-manager [documentation](https://cert-manager.io/docs/trust/trust-manager/#cert-manager-integration-intentionally-copying-ca-certificates).
 
   - deploy-prometheus, ie: `make deploy-prometheus`
     - Deploy [Prometheus](https://prometheus.io) Stack (Prometheus Operator, Prometheus, AlertManager, Node Exporter, Kube State Metrics, Grafana) in `prometheus` namespace using
