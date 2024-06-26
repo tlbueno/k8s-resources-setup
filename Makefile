@@ -101,6 +101,17 @@ delete-local-cluster: ## delete local cluster
 		kind delete cluster --name=$(KIND_CLUSTER_NAME) || true; \
 	fi
 
+.PHONY: add-kind-kubeconfig-in-toolbox
+add-kind-kubeconfig-in-toolbox: ## add kubeconfig from kind into toolbox container
+	@tempfile=$(shell mktemp); \
+	kind get kubeconfig --internal --name local-k8s > $${tempfile}; \
+	$(BIN_DIR)/add-kubeconfig-in-toolbox.sh --file $${tempfile}; \
+	$(BIN_DIR)/kubectl-wait-wrapper.sh -n toolbox \
+		-t pods \
+		-p "--for=condition=Ready --timeout=300s --all pods"; \
+	rm $${tempfile}
+	@echo ""
+
 ######################################
 ### Cluster additional deployments ###
 ######################################
@@ -362,7 +373,7 @@ exec-toolbox: ## Execute a shell into the toolbox container
 	@echo ""
 	@echo "# Running $(@) #"
 	@echo ""
-	@kubectl -n toolbox --stdin --tty exec toolbox -- bash -l
+	@kubectl -n toolbox exec toolbox-0 --stdin --tty -- bash -l
 	@echo ""
 
 ####################

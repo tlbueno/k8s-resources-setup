@@ -39,6 +39,9 @@ The local cluster is created using [kind] as you will see below. In the kind con
   - delete-local-cluster, ie: `make delete-local-cluster`
     - delete the local cluster.
 
+  - add-kind-kubeconfig-in-toolbox, ie: `make add-kind-kubeconfig-in-toolbox`
+    - add kind kubeconfig file into toolbox container. This target creates a secret in the toolbox namespace and patch the toolbox statefulset to mount the secret into /home/toolbox/.kube. This will allow access from the toolbox container into the cluster for tools that use kubeconfig like `kubeclt`.
+
   - deploy-ingress-controller, ie: `make deploy-ingress-controller`
     - Deploy [Ingress controller](https://kubernetes.io/docs/concepts/services-networking/ingress-controllers/) in `ingress-nginx` namespace using [ingress-nginx/ingress-nginx](https://github.com/kubernetes/ingress-nginx/tree/main/charts/ingress-nginx) helm chart. Please refer to the target in the [Makefile](Makefile) to see the options used.
 
@@ -95,9 +98,11 @@ The local cluster is created using [kind] as you will see below. In the kind con
 
 - [namespace-data-collector.sh](bin/namespace-data-collector.sh) - A tool to dump kubernetes resources from a namespace. Execute `bin/namespace-data-collector.sh --help` for details.
 
-- [kubectl-wait-wrapper.sh](bin/kubectl-wait-wrapper.sh) - A wrapper to kubectl wait command. It is used inside the [Makefile](Makefile). `bin/kubectl-wait-wrapper.sh --help` for details.
+- [kubectl-wait-wrapper.sh](bin/kubectl-wait-wrapper.sh) - A wrapper to kubectl wait command. It is used inside the [Makefile](Makefile). `bin/kubectl-wait-wrapper.sh --help` for details. It is used by multiple targets to check the deployment.
 
 - [dump-certificate.sh](bin/dump-certificate.sh) - A tool do dump cert-manager certificate. Execute `bin/dump-certificate.sh --help` for details. In addition with a tool like certtool you can print certificate details like: `bin/dump-certificate.sh -n cert-manager -c localcluster-selfsigned-ca-certificate -k tls.crt | certtool -i`
+
+- [add-kubeconfig-in-toolbox.sh](bin/add-kubeconfig-in-toolbox.sh) - A tool do add a kubeconfig file into the toolbox container. Execute `bin/add-kubeconfig-in-toolbox.sh --help` for details. It is used by the `add-kind-kubeconfig-in-toolbox` target.
 
 ## Ingress tips
 
