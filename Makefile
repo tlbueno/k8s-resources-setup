@@ -21,20 +21,16 @@ PREPARE_K8S_TARGETS           = add-helm-charts-repos \
 								deploy-olm deploy-metrics-server \
 								deploy-cert-manager-operator \
 								deploy-trust-manager-operator \
-								deploy-selfsigned-ca \
 								deploy-prometheus \
 								deploy-mariadb-operator \
-								deploy-mariadb-instance \
 								deploy-toolbox
 
 PREPARE_OCP_TARGETS           = add-helm-charts-repos \
 								update-helm-charts-repos \
 								deploy-cert-manager-operator \
 								deploy-trust-manager-operator \
-								deploy-selfsigned-ca \
 								deploy-prometheus \
 								deploy-mariadb-operator \
-								deploy-mariadb-instance \
 								deploy-toolbox
 
 PREPARE_TARGETS               =
@@ -117,7 +113,6 @@ deploy-ingress-controller: ## Deploy Ingress controller in the cluster
 	chart=ingress-nginx/ingress-nginx; \
 	echo -n "Deploying chart $${chart} " && helm show chart $${chart} |grep -E "(^version|^appVersion)" | sort -r | paste -sd ' '; \
 	helm install --namespace $${namespace_name} --create-namespace --wait \
-		--set namespaceOverride=$${namespace_name} \
 		--set controller.extraArgs.enable-ssl-passthrough= \
 		--set controller.allowSnippetAnnotations=true \
 		--set controller.ingressClassResource.default=true \
@@ -202,6 +197,7 @@ deploy-trust-manager-operator: ## Deploy Trust Manager Operator
 	echo -n "Deploying chart $${chart} " && helm show chart $${chart} |grep -E "(^version|^appVersion)" | sort -r | paste -sd ' '; \
 	helm install --namespace $${namespace_name} --create-namespace --wait \
 		--set secretTargets.enabled=true \
+		--set secretTargets.authorizedSecretsAll=true \
 		trust-manager-operator $${chart}; \
 	$(BIN_DIR)/kubectl-wait-wrapper.sh -n $${namespace_name} \
 		-t deployments \
