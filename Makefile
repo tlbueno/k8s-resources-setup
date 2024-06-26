@@ -101,14 +101,14 @@ delete-local-cluster: ## delete local cluster
 		kind delete cluster --name=$(KIND_CLUSTER_NAME) || true; \
 	fi
 
-.PHONY: add-kind-kubeconfig-in-toolbox
-add-kind-kubeconfig-in-toolbox: ## add kubeconfig from kind into toolbox container
+.PHONY: copy-kind-kubeconfig-to-toolbox
+copy-kind-kubeconfig-to-toolbox: ## copy kubeconfig from kind to toolbox container
+	@echo ""
+	@echo "# Running $(@) #"
+	@echo ""
 	@tempfile=$(shell mktemp); \
 	kind get kubeconfig --internal --name local-k8s > $${tempfile}; \
-	$(BIN_DIR)/add-kubeconfig-in-toolbox.sh --file $${tempfile}; \
-	$(BIN_DIR)/kubectl-wait-wrapper.sh -n toolbox \
-		-t pods \
-		-p "--for=condition=Ready --timeout=300s --all pods"; \
+	$(BIN_DIR)/copy-kubeconfig-to-container.sh --namespace toolbox --file $${tempfile} --pod toolbox-0 --container toolbox-container; \
 	rm $${tempfile}
 	@echo ""
 
