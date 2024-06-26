@@ -2,16 +2,13 @@
 
 set -e
 
-#
 # This is a rather minimal example Argbash potential
 # Example taken from http://argbash.readthedocs.io/en/stable/example.html
 #
-# ARG_OPTIONAL_SINGLE([namespace],[n],[namespace name],[toolbox])
+# ARG_OPTIONAL_SINGLE([namespace],[n],[namespace name])
 # ARG_OPTIONAL_SINGLE([file],[f],[kubeconfig file])
-# ARG_OPTIONAL_SINGLE([secret],[s],[secret name],[kubeconfig])
-# ARG_OPTIONAL_SINGLE([statefulset],[t],[statefulset name],[toolbox])
-# ARG_OPTIONAL_SINGLE([container-name],[c],[container name],[toolbox-container])
-# ARG_OPTIONAL_SINGLE([mount-path],[m],[container mount path],[/home/toolbox/.kube])
+# ARG_OPTIONAL_SINGLE([pod],[p],[pod name to copy kubeconfig to])
+# ARG_OPTIONAL_SINGLE([container],[c],[container name to kubeconfig file to])
 # ARG_OPTIONAL_BOOLEAN([debug],[d],[enable debug])
 # ARG_HELP([The general script's help msg])
 # ARGBASH_GO()
@@ -43,18 +40,16 @@ die()
 # This is required in order to support getopts-like short options grouping.
 begins_with_short_option()
 {
-	local first_option all_short_options='nfstcmdh'
+	local first_option all_short_options='nfpcdh'
 	first_option="${1:0:1}"
 	test "$all_short_options" = "${all_short_options/$first_option/}" && return 1 || return 0
 }
 
 # THE DEFAULTS INITIALIZATION - OPTIONALS
-_arg_namespace="toolbox"
+_arg_namespace=""
 _arg_file=""
-_arg_secret="kubeconfig"
-_arg_statefulset="toolbox"
-_arg_container_name="toolbox-container"
-_arg_mount_path="/home/toolbox/.kube"
+_arg_pod=""
+_arg_container=""
 _arg_debug="off"
 
 
@@ -64,13 +59,11 @@ _arg_debug="off"
 print_help()
 {
 	printf '%s\n' "The general script's help msg"
-	printf 'Usage: %s [-n|--namespace <arg>] [-f|--file <arg>] [-s|--secret <arg>] [-t|--statefulset <arg>] [-c|--container-name <arg>] [-m|--mount-path <arg>] [-d|--(no-)debug] [-h|--help]\n\n' "$0"
-	printf '\t%s\t\t\t%s\n' "-n, --namespace" "namespace name (default: 'toolbox')"
+	printf 'Usage: %s [-n|--namespace <arg>] [-f|--file <arg>] [-p|--pod <arg>] [-c|--container <arg>] [-d|--(no-)debug] [-h|--help]\n\n' "$0"
+	printf '\t%s\t\t\t%s\n' "-n, --namespace" "namespace name (no default)"
 	printf '\t%s\t\t\t%s\n' "-f, --file" "kubeconfig file (no default)"
-	printf '\t%s\t\t\t%s\n' "-s, --secret" "secret name (default: 'kubeconfig')"
-	printf '\t%s\t\t%s\n' "-t, --statefulset" "statefulset name (default: 'toolbox')"
-	printf '\t%s\t\t%s\n' "-c, --container-name" "container name (default: 'toolbox-container')"
-	printf '\t%s\t\t%s\n' "-m, --mount-path" "container mount path (default: '/home/toolbox/.kube')"
+	printf '\t%s\t\t\t%s\n' "-p, --pod" "pod name to copy kubeconfig to (no default)"
+	printf '\t%s\t\t\t%s\n' "-c, --container" "container name to kubeconfig file to (no default)"
 	printf '\t%s\t\t%s\n' "-d, --debug, --no-debug" "enable debug (off by default)"
 	printf '\t%s\t\t\t%s\n' "-h, --help" "Prints help"
 }
@@ -121,60 +114,32 @@ parse_commandline()
 				_arg_file="${_key##-f}"
 				;;
 			# See the comment of option '--namespace' to see what's going on here - principle is the same.
-			-s|--secret)
+			-p|--pod)
 				test $# -lt 2 && die "Missing value for the optional argument '$_key'." 1
-				_arg_secret="$2"
+				_arg_pod="$2"
 				shift
 				;;
 			# See the comment of option '--namespace=' to see what's going on here - principle is the same.
-			--secret=*)
-				_arg_secret="${_key##--secret=}"
+			--pod=*)
+				_arg_pod="${_key##--pod=}"
 				;;
 			# See the comment of option '-n' to see what's going on here - principle is the same.
-			-s*)
-				_arg_secret="${_key##-s}"
+			-p*)
+				_arg_pod="${_key##-p}"
 				;;
 			# See the comment of option '--namespace' to see what's going on here - principle is the same.
-			-t|--statefulset)
+			-c|--container)
 				test $# -lt 2 && die "Missing value for the optional argument '$_key'." 1
-				_arg_statefulset="$2"
+				_arg_container="$2"
 				shift
 				;;
 			# See the comment of option '--namespace=' to see what's going on here - principle is the same.
-			--statefulset=*)
-				_arg_statefulset="${_key##--statefulset=}"
-				;;
-			# See the comment of option '-n' to see what's going on here - principle is the same.
-			-t*)
-				_arg_statefulset="${_key##-t}"
-				;;
-			# See the comment of option '--namespace' to see what's going on here - principle is the same.
-			-c|--container-name)
-				test $# -lt 2 && die "Missing value for the optional argument '$_key'." 1
-				_arg_container_name="$2"
-				shift
-				;;
-			# See the comment of option '--namespace=' to see what's going on here - principle is the same.
-			--container-name=*)
-				_arg_container_name="${_key##--container-name=}"
+			--container=*)
+				_arg_container="${_key##--container=}"
 				;;
 			# See the comment of option '-n' to see what's going on here - principle is the same.
 			-c*)
-				_arg_container_name="${_key##-c}"
-				;;
-			# See the comment of option '--namespace' to see what's going on here - principle is the same.
-			-m|--mount-path)
-				test $# -lt 2 && die "Missing value for the optional argument '$_key'." 1
-				_arg_mount_path="$2"
-				shift
-				;;
-			# See the comment of option '--namespace=' to see what's going on here - principle is the same.
-			--mount-path=*)
-				_arg_mount_path="${_key##--mount-path=}"
-				;;
-			# See the comment of option '-n' to see what's going on here - principle is the same.
-			-m*)
-				_arg_mount_path="${_key##-m}"
+				_arg_container="${_key##-c}"
 				;;
 			# The debug argurment doesn't accept a value,
 			# we expect the --debug or -d, so we watch for them.
@@ -218,39 +183,12 @@ parse_commandline "$@"
 # OTHER STUFF GENERATED BY Argbash
 
 ### END OF CODE GENERATED BY Argbash (sortof) ### ])
-# [ <-- needed because of Argbash
 
-# Create the patch content as a string
-PATCH_CONTENT=$(cat << EOF
-{
-  "spec": {
-    "template": {
-      "spec": {
-        "volumes": [
-          {
-            "name": "kubeconfig-volume",
-            "secret": {
-              "secretName": "${_arg_secret}"
-            }
-          }
-        ],
-        "containers": [
-          {
-            "name": "${_arg_container_name}",
-            "volumeMounts": [
-              {
-                "name": "kubeconfig-volume",
-                "mountPath": "${_arg_mount_path}"
-              }
-            ]
-          }
-        ]
-      }
-    }
-  }
-}
-EOF
-)
+if [ "${_arg_namespace}" == "" ]; then
+    printf "error: missing namespace parameter\n\n"
+        print_help
+    exit 1
+fi
 
 if [ "${_arg_file}" == "" ]; then
     printf "error: missing file parameter\n\n"
@@ -258,11 +196,20 @@ if [ "${_arg_file}" == "" ]; then
     exit 1
 fi
 
-echo "deleting secret ${_arg_secret} on namespace ${_arg_namespace} if it exists"
-kubectl -n "${_arg_namespace}" delete secret "${_arg_secret}" 2>/dev/null || true
-echo "Creating kubeconfig secret on namespace ${_arg_namespace}"
-kubectl -n "${_arg_namespace}" create secret generic "${_arg_secret}" --from-file=config="${_arg_file}"
+if [ "${_arg_pod}" == "" ]; then
+    printf "error: missing pod parameter\n\n"
+        print_help
+    exit 1
+fi
 
-kubectl -n "${_arg_namespace}" patch statefulset "${_arg_statefulset}" --patch="${PATCH_CONTENT}"
-echo "Patched statefulset ${_arg_statefulset} to mount secret ${_arg_secret} at ${_arg_mount_path}"
+if [ "${_arg_container}" == "" ]; then
+    printf "error: missing container parameter\n\n"
+        print_help
+    exit 1
+fi
+
+echo "Copying kubeconfig file ${_arg_file} to container ${_arg_container}, pod ${_arg_pod} in namespace ${_arg_namespace}"
+
+kubectl -n "${_arg_namespace}" exec "${_arg_pod}" --container "${_arg_container}" -- mkdir -p /home/toolbox/.kube
+kubectl -n "${_arg_namespace}" exec --stdin "${_arg_pod}" --container "${_arg_container}" -- bash -c "cat - > /home/toolbox/.kube/config" < "${_arg_file}"
 
