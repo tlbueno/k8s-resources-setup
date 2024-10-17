@@ -1,6 +1,21 @@
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 nodes:
+  - role: worker
+    extraMounts:
+      - containerPath: /var/lib/kubelet/config.json
+        hostPath: ${HOME}/.docker/config.json
+        readOnly: true
+  - role: worker
+    extraMounts:
+      - containerPath: /var/lib/kubelet/config.json
+        hostPath: ${HOME}/.docker/config.json
+        readOnly: true
+  - role: worker
+    extraMounts:
+      - containerPath: /var/lib/kubelet/config.json
+        hostPath: ${HOME}/.docker/config.json
+        readOnly: true
   - role: control-plane
     extraMounts:
       - containerPath: /var/lib/kubelet/config.json
@@ -13,24 +28,152 @@ nodes:
           kubeletExtraArgs:
             node-labels: "ingress-ready=true"
     extraPortMappings:
+      # port t obe used by ingress-nginx to expose http and https
       - containerPort: 80
         hostPort: 80
         protocol: TCP
       - containerPort: 443
         hostPort: 443
         protocol: TCP
-  - role: worker
-    extraMounts:
-      - containerPath: /var/lib/kubelet/config.json
-        hostPath: ${HOME}/.docker/config.json
-        readOnly: true
-  - role: worker
-    extraMounts:
-      - containerPath: /var/lib/kubelet/config.json
-        hostPath: ${HOME}/.docker/config.json
-        readOnly: true
-  - role: worker
-    extraMounts:
-      - containerPath: /var/lib/kubelet/config.json
-        hostPath: ${HOME}/.docker/config.json
-        readOnly: true
+      # Ports to be used by ingress-nginx to expose TCP protocols like mariadb
+      - containerPort: 33060
+        hostPort: 33060
+        protocol: TCP
+      - containerPort: 33061
+        hostPort: 33061
+        protocol: TCP
+      - containerPort: 33062
+        hostPort: 33062
+        protocol: TCP
+      - containerPort: 33063
+        hostPort: 33063
+        protocol: TCP
+      - containerPort: 33064
+        hostPort: 33064
+        protocol: TCP
+      - containerPort: 33065
+        hostPort: 33065
+        protocol: TCP
+      # Ports to be used by ingress-nginx to expose TCP protocols like artemis acceptors
+      - containerPort: 51510
+        hostPort: 51510
+        protocol: TCP
+      - containerPort: 51511
+        hostPort: 51511
+        protocol: TCP
+      - containerPort: 51512
+        hostPort: 51512
+        protocol: TCP
+      - containerPort: 51513
+        hostPort: 51513
+        protocol: TCP
+      - containerPort: 51514
+        hostPort: 51514
+        protocol: TCP
+      - containerPort: 51515
+        hostPort: 51515
+        protocol: TCP
+      - containerPort: 51516
+        hostPort: 51516
+        protocol: TCP
+      - containerPort: 51517
+        hostPort: 51517
+        protocol: TCP
+      - containerPort: 51518
+        hostPort: 51518
+        protocol: TCP
+      - containerPort: 51519
+        hostPort: 51519
+        protocol: TCP
+      - containerPort: 52520
+        hostPort: 52520
+        protocol: TCP
+      - containerPort: 52521
+        hostPort: 52521
+        protocol: TCP
+      - containerPort: 52522
+        hostPort: 52522
+        protocol: TCP
+      - containerPort: 52523
+        hostPort: 52523
+        protocol: TCP
+      - containerPort: 52524
+        hostPort: 52524
+        protocol: TCP
+      - containerPort: 52525
+        hostPort: 52525
+        protocol: TCP
+      - containerPort: 52526
+        hostPort: 52526
+        protocol: TCP
+      - containerPort: 52527
+        hostPort: 52527
+        protocol: TCP
+      - containerPort: 52528
+        hostPort: 52528
+        protocol: TCP
+      - containerPort: 52529
+        hostPort: 52529
+        protocol: TCP
+      # Ports to be used by ingress-nginx to expose TCP protocols like java remote debbuger
+      - containerPort: 5000
+        hostPort: 5000
+        protocol: TCP
+      - containerPort: 5001
+        hostPort: 5001
+        protocol: TCP
+      - containerPort: 5002
+        hostPort: 5002
+        protocol: TCP
+      - containerPort: 5003
+        hostPort: 5003
+        protocol: TCP
+      - containerPort: 5004
+        hostPort: 5004
+        protocol: TCP
+      - containerPort: 5005
+        hostPort: 5005
+        protocol: TCP
+      - containerPort: 5006
+        hostPort: 5006
+        protocol: TCP
+      - containerPort: 5007
+        hostPort: 5007
+        protocol: TCP
+      - containerPort: 5008
+        hostPort: 5008
+        protocol: TCP
+      - containerPort: 5009
+        hostPort: 5009
+        protocol: TCP
+      - containerPort: 5100
+        hostPort: 5100
+        protocol: TCP
+      - containerPort: 5101
+        hostPort: 5101
+        protocol: TCP
+      - containerPort: 5102
+        hostPort: 5102
+        protocol: TCP
+      - containerPort: 5103
+        hostPort: 5103
+        protocol: TCP
+      - containerPort: 5104
+        hostPort: 5104
+        protocol: TCP
+      - containerPort: 5105
+        hostPort: 5105
+        protocol: TCP
+      - containerPort: 5106
+        hostPort: 5106
+        protocol: TCP
+      - containerPort: 5107
+        hostPort: 5107
+        protocol: TCP
+      - containerPort: 5108
+        hostPort: 5108
+        protocol: TCP
+      - containerPort: 5109
+        hostPort: 5109
+        protocol: TCP
+
