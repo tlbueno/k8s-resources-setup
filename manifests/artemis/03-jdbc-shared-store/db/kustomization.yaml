@@ -4,12 +4,13 @@ namespace: mariadb
 sortOptions:
   order: fifo
 resources:
-  - Namespace.yaml
-  - MariaDB.yaml
+  - Database.yaml
+  - User.yaml
+  - Grant.yaml
 generatorOptions:
-  disableNameSuffixHash: true
+ disableNameSuffixHash: true
 secretGenerator:
-  - name: mariadb-root
-    literals:
-      - password=root_mariadb
+- name: artemis-db-user
+  literals:
+  - password=artemis_mariadb
 

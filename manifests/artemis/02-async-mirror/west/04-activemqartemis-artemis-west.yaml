@@ -1,0 +1,51 @@
+apiVersion: broker.amq.io/v1beta1
+kind: ActiveMQArtemis
+metadata:
+  name: artemis-west
+spec:
+  #version: 2.37.0
+  adminUser: admin
+  adminPassword: admin
+  acceptors:
+    - name: all
+      protocols: all
+      port: 61610
+      expose: true
+    - name: amqp
+      protocols: amqp
+      port: 61611
+      expose: true
+    - name: core
+      protocols: CORE
+      port: 61612
+      expose: true
+    - name: mqtt
+      protocols: mqtt
+      port: 61613
+      expose: true
+  console:
+    expose: true
+  deploymentPlan:
+    #image: quay.io/artemiscloud/activemq-artemis-broker-kubernetes:snapshot
+    #initImage: quay.io/artemiscloud/activemq-artemis-broker-init:snapshot
+    #image: quay.io/artemiscloud/activemq-artemis-broker-kubernetes:artemis.2.36.0
+    #initImage: quay.io/artemiscloud/activemq-artemis-broker-init:artemis.2.36.0
+    clustered: true
+    enableMetricsPlugin: true
+    extraMounts:
+      secrets:
+        - 01-base-bp
+      configMaps:
+        - custom-logging-config
+    journalType: aio
+    messageMigration: true
+    persistenceEnabled: true
+    requireLogin: false
+    size: 1
+    storage:
+      size: 5G
+  env:
+    - name: DEBUG_ARGS
+      value: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+  ingressDomain: localcluster
+

@@ -1,0 +1,12 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: artemis-single-instance
+sortOptions:
+  order: fifo
+resources:
+  - ../base
+  - 01-service-debugger-svc.yaml
+  - 02-secret-01-base-bp.yaml
+  - 03-configmap-custom-logging-config.yaml
+  - 04-activemqartemis-artemis-single.yaml
+

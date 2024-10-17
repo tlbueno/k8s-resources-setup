@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata: 
+  name: jdbc-ha-ping-svc
+spec:
+  clusterIP: None
+  ports:
+  - port: 8888
+    protocol: TCP
+    targetPort: 8888
+  publishNotReadyAddresses: true
+  selector:
+    cluster: jdbc-ha
+  sessionAffinity: None
+  type: ClusterIP
+

@@ -1,0 +1,15 @@
+apiVersion: k8s.mariadb.com/v1alpha1
+kind: User
+metadata:
+  name: artemis
+spec:
+  mariaDbRef:
+    name: mariadb
+  passwordSecretKeyRef:
+    name: artemis-db-user
+    key: password
+  # This field is immutable and defaults to 10
+  maxUserConnections: 20
+  host: "%"
+  retryInterval: 5s
+

@@ -1,0 +1,82 @@
+apiVersion: broker.amq.io/v1beta1
+kind: ActiveMQArtemis
+metadata:
+  name: artemis-peer-a
+spec:
+  #version: 2.37.0
+  adminUser: admin
+  adminPassword: admin
+  acceptors:
+    - name: all
+      protocols: all
+      port: 61610
+      expose: true
+    - name: amqp
+      protocols: amqp
+      port: 61611
+      expose: true
+    - name: core
+      protocols: CORE
+      port: 61612
+      expose: true
+    - name: mqtt
+      protocols: mqtt
+      port: 61613
+      expose: true
+  console:
+    expose: true
+  deploymentPlan:
+    #image: quay.io/artemiscloud/activemq-artemis-broker-kubernetes:snapshot
+    #initImage: quay.io/artemiscloud/activemq-artemis-broker-init:snapshot
+    #image: quay.io/artemiscloud/activemq-artemis-broker-kubernetes:artemis.2.36.0
+    #initImage: quay.io/artemiscloud/activemq-artemis-broker-init:artemis.2.36.0
+    clustered: false
+    enableMetricsPlugin: true
+    extraMounts:
+      secrets:
+        - 01-base-bp
+        - 02-jdbc-bp
+      configMaps:
+        - custom-logging-config-peer-a
+    labels:
+      cluster: jdbc-ha
+    livenessProbe:
+      exec:
+        command:
+        - test
+        - -f
+        - /home/jboss/amq-broker/lock/cli.lock
+    persistenceEnabled: false
+    requireLogin: false
+    size: 1
+  env:
+    - name: DEBUG_ARGS
+      value: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+    - name: ARTEMIS_EXTRA_LIBS
+      value: /opt/artemis-peer-a/data/extra-libs
+    - name: PING_SVC_NAME
+      value: jdbc-ha-ping-svc
+    - name: ARTEMIS_EXTRA_LIBS
+      value: /amq/init/config/extra-libs
+  ingressDomain: localcluster
+  resourceTemplates:
+    - patch:
+        kind: StatefulSet
+        spec:
+          template:
+            spec:
+              initContainers:
+              - command:
+                - sh
+                - -c
+                - mkdir -p /amq/init/config/extra-libs && test -f /amq/init/config/extra-libs/mariadb-java-client-3.4.1.jar ||
+                  curl -sSL -o /amq/init/config/extra-libs/mariadb-java-client-3.4.1.jar
+                  https://dlm.mariadb.com/3852266/Connectors/java/connector-java-3.4.1/mariadb-java-client-3.4.1.jar
+                image: quay.io/artemiscloud/activemq-artemis-broker-init
+                name: db-jdbc-driver-init
+                volumeMounts:
+                - mountPath: /amq/init/config
+                  name: amq-cfg-dir
+      selector:
+        kind: StatefulSet
+
