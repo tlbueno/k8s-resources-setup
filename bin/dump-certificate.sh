@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-set -e -o pipefail
+set -e
+set -o pipefail
 
 # This is a rather minimal example Argbash potential
 # Example taken from http://argbash.readthedocs.io/en/stable/example.html
