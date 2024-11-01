@@ -178,7 +178,7 @@ spec:
             spec:
               containers:
                 - name: toolbox-sidecar
-                  image: quay.io/tlbueno/toolbox:latest
+                  image: ghcr.io/tlbueno/toolbox:latest
                   imagePullPolicy: Always
       selector:
         kind: StatefulSet
