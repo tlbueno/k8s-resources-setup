@@ -130,7 +130,7 @@ sudo dnf install dnsmasq
 
 - Create an dnsmasq configuration, configure dnsmasq to start on system boot and start dnsmasq:
 ```sh
-cat - <<EOF > sudo tee /etc/dnsmasq.d/00-local.conf
+cat - <<EOF | sudo tee /etc/dnsmasq.d/00-local.conf
 address=/localcluster/127.0.0.1
 no-resolv
 EOF
@@ -144,7 +144,7 @@ sudo systemctl start dnsmasq
 
 - Create an systemd-resolved configuration to forward DNS queries to dnsmasq, restart systemd-resolved:
 ```sh
-cat - <<EOF > sudo tee /etc/systemd/resolved.conf
+cat - <<EOF | sudo tee /etc/systemd/resolved.conf
 [Resolve]
 DNS=127.0.0.1
 Domains=~localcluster
