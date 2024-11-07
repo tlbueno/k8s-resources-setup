@@ -104,6 +104,12 @@ prepare-ocp: .setOCPPrepareTargets .runPrepare ## Deploy all the resources for o
 .PHONY: create-kind
 create-kind: ## Create Kind cluster
 	@echo "Using KIND_CLUSTER_NAME as $(KIND_CLUSTER_NAME)"
+	@if [ ! -f ${HOME}/.docker/config.json ]; then \
+		mkdir -p ${HOME}/.docker; \
+		chmod 0700 ${HOME}/.docker; \
+		touch ${HOME}/.docker/config.json; \
+		chmod 0600 ${HOME}/.docker/config.json; \
+	fi
 	@if [ ! "$(shell kind get clusters | grep $(KIND_CLUSTER_NAME))" ]; then \
 		tempfile=$(shell mktemp); \
 		cat $(MK_FILE_DIR)/local-cluster/kind-config.yaml | envsubst > $${tempfile}; \
