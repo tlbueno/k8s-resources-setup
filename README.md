@@ -104,6 +104,9 @@ For a local cluster there are also some [tips](#ingress-tips) related to ingress
   - deploy-chaos-mesh, ie: `make deploy-chaos-mesh`
     - Deploy [chaos-mesh](https://chaos-mesh.org) using [chaos-mesh/chaos-mesh](https://github.com/chaos-mesh/chaos-mesh/tree/master/helm/chaos-mesh).
 
+    - `CHAOS_MESH_CONTAINER_RUNTIME` environment variable can be used to specify the cluster container runtime. It defaults to `containerd`. Verify chaos mesh documentation for more details.
+    - `CHAOS_MESH_CONTAINER_SOCKET_PATH` environment variable can be used to specify the cluster container runtime socket path. It defaults to `/run/containerd/containerd.sock`. Verify chaos mesh documentation for more details.
+
   - configure-inotify, ie: `make configure-inotify`
     - Configure sysctl inotify values (requires sudo access). This may be need in some cases for some applications run fine inside the [kind] cluster.
 

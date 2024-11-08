@@ -35,6 +35,8 @@ ifneq ($(ARTEMISCLOUD_CHART_VERSION),)
 	ARTEMISCLOUD_CHART_VERSION_PARAM = --version "$(ARTEMISCLOUD_CHART_VERSION)"
 endif
 INGRESS_CHAT_NAME                    = ingress-nginx/ingress-nginx
+CHAOS_MESH_CONTAINER_RUNTIME         = containerd
+CHAOS_MESH_CONTAINER_SOCKET_PATH     = /run/containerd/containerd.sock
 
 # Prepare targets variables
 PREPARE_K8S_TARGETS           = add-helm-charts-repos \
@@ -406,6 +408,8 @@ deploy-chaos-mesh: ## Deploy Chaos Mesh
 	chart=chaos-mesh/chaos-mesh; \
 	echo -n "Deploying chart $${chart} " && helm show chart $${chart} |grep -E "(^version|^appVersion)" | sort -r | paste -sd ' '; \
 	helm install --namespace $${namespace_name} --create-namespace --wait \
+		--set chaosDaemon.runtime=$(CHAOS_MESH_CONTAINER_RUNTIME) \
+		--set chaosDaemon.socketPath=$(CHAOS_MESH_CONTAINER_SOCKET_PATH) \
 		chaos-mesh $${chart}; \
 	$(BIN_DIR)/kubectl-wait-wrapper.sh -n $${namespace_name} \
 		-t pods \
