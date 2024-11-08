@@ -1,3 +1,4 @@
+---
 apiVersion: k8s.mariadb.com/v1alpha1
 kind: MariaDB
 metadata:
@@ -11,4 +12,3 @@ spec:
     enabled: true
   storage:
     size: 5Gi
-

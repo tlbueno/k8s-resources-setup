@@ -1,3 +1,4 @@
+---
 apiVersion: k8s.mariadb.com/v1alpha1
 kind: Grant
 metadata:
@@ -6,7 +7,7 @@ spec:
   mariaDbRef:
     name: mariadb
   privileges:
-     - "ALL PRIVILEGES"
+    - "ALL PRIVILEGES"
   database: "artemis"
   table: "*"
   username: artemis
@@ -14,4 +15,3 @@ spec:
   host: "%"
   requeueInterval: 30s
   retryInterval: 5s
-
