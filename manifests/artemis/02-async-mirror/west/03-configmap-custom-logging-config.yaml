@@ -1,3 +1,4 @@
+---
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -43,8 +44,9 @@ data:
     logger.core_config.name=org.apache.activemq.artemis.core.config.impl.ConfigurationImpl
     logger.core_config.level=TRACE
 
-    # CriticalAnalyzer: If you have issues with the CriticalAnalyzer, setting this to TRACE would give
-    # you extra troubleshooting info, but do not use TRACE regularly as it would incur extra CPU usage.
+    # CriticalAnalyzer: If you have issues with the CriticalAnalyzer, setting
+    # this to TRACE would give you extra troubleshooting info, but do not use
+    # TRACE regularly as it would incur extra CPU usage.
     logger.critical_analyzer.name=org.apache.activemq.artemis.utils.critical
     logger.critical_analyzer.level=INFO
 

@@ -1,3 +1,4 @@
+---
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: artemis-single-instance
@@ -9,4 +10,3 @@ resources:
   - 02-secret-01-base-bp.yaml
   - 03-configmap-custom-logging-config.yaml
   - 04-activemqartemis-artemis-single.yaml
-

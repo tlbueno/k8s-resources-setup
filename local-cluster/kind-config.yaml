@@ -1,5 +1,10 @@
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
+# This is an additional configuration to set the api server listen address and port
+# It is useful when exposing the api server over the network
+#networking:
+#  apiServerAddress: "0.0.0.0"
+#  apiServerPort: 6443
 nodes:
   - role: worker
     extraMounts:
@@ -27,6 +32,15 @@ nodes:
         nodeRegistration:
           kubeletExtraArgs:
             node-labels: "ingress-ready=true"
+      # This is an additional configuration to set the api server certificate SANs
+      # It is useful when exposing the api server over the network
+      #- |
+      #  kind: ClusterConfiguration
+      #  apiServer:
+      #    certSANs:
+      #      - "api.yourdomain"
+      #      - "0.0.0.0"
+      #      - "localhost"
     extraPortMappings:
       # port t obe used by ingress-nginx to expose http and https
       - containerPort: 80

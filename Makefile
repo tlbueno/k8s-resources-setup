@@ -35,6 +35,8 @@ ifneq ($(ARTEMISCLOUD_CHART_VERSION),)
 	ARTEMISCLOUD_CHART_VERSION_PARAM = --version "$(ARTEMISCLOUD_CHART_VERSION)"
 endif
 INGRESS_CHAT_NAME                    = ingress-nginx/ingress-nginx
+CHAOS_MESH_CONTAINER_RUNTIME         = containerd
+CHAOS_MESH_CONTAINER_SOCKET_PATH     = /run/containerd/containerd.sock
 
 # Prepare targets variables
 PREPARE_K8S_TARGETS           = add-helm-charts-repos \
@@ -104,6 +106,12 @@ prepare-ocp: .setOCPPrepareTargets .runPrepare ## Deploy all the resources for o
 .PHONY: create-kind
 create-kind: ## Create Kind cluster
 	@echo "Using KIND_CLUSTER_NAME as $(KIND_CLUSTER_NAME)"
+	@if [ ! -f ${HOME}/.docker/config.json ]; then \
+		mkdir -p ${HOME}/.docker; \
+		chmod 0700 ${HOME}/.docker; \
+		touch ${HOME}/.docker/config.json; \
+		chmod 0600 ${HOME}/.docker/config.json; \
+	fi
 	@if [ ! "$(shell kind get clusters | grep $(KIND_CLUSTER_NAME))" ]; then \
 		tempfile=$(shell mktemp); \
 		cat $(MK_FILE_DIR)/local-cluster/kind-config.yaml | envsubst > $${tempfile}; \
@@ -400,6 +408,8 @@ deploy-chaos-mesh: ## Deploy Chaos Mesh
 	chart=chaos-mesh/chaos-mesh; \
 	echo -n "Deploying chart $${chart} " && helm show chart $${chart} |grep -E "(^version|^appVersion)" | sort -r | paste -sd ' '; \
 	helm install --namespace $${namespace_name} --create-namespace --wait \
+		--set chaosDaemon.runtime=$(CHAOS_MESH_CONTAINER_RUNTIME) \
+		--set chaosDaemon.socketPath=$(CHAOS_MESH_CONTAINER_SOCKET_PATH) \
 		chaos-mesh $${chart}; \
 	$(BIN_DIR)/kubectl-wait-wrapper.sh -n $${namespace_name} \
 		-t pods \

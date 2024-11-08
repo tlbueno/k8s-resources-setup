@@ -1,3 +1,4 @@
+---
 apiVersion: k8s.mariadb.com/v1alpha1
 kind: User
 metadata:
@@ -12,4 +13,3 @@ spec:
   maxUserConnections: 20
   host: "%"
   retryInterval: 5s
-

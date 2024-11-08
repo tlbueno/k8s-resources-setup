@@ -1,9 +1,10 @@
+---
 apiVersion: broker.amq.io/v1beta1
 kind: ActiveMQArtemis
 metadata:
   name: artemis-east
 spec:
-  #version: 2.37.0
+  # version: 2.37.0
   adminUser: admin
   adminPassword: admin
   acceptors:
@@ -26,10 +27,12 @@ spec:
   console:
     expose: true
   deploymentPlan:
-    #image: quay.io/artemiscloud/activemq-artemis-broker-kubernetes:snapshot
-    #initImage: quay.io/artemiscloud/activemq-artemis-broker-init:snapshot
-    #image: quay.io/artemiscloud/activemq-artemis-broker-kubernetes:artemis.2.36.0
-    #initImage: quay.io/artemiscloud/activemq-artemis-broker-init:artemis.2.36.0
+    # image: quay.io/artemiscloud/activemq-artemis-broker-kubernetes:snapshot
+    # initImage: quay.io/artemiscloud/activemq-artemis-broker-init:snapshot
+    # image: |
+    #   quay.io/artemiscloud/activemq-artemis-broker-kubernetes:artemis.2.36.0
+    # initImage: |
+    #   quay.io/artemiscloud/activemq-artemis-broker-init:artemis.2.36.0
     clustered: true
     enableMetricsPlugin: true
     extraMounts:
@@ -47,6 +50,6 @@ spec:
       size: 5G
   env:
     - name: DEBUG_ARGS
-      value: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+      value: |
+        -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
   ingressDomain: localcluster
-

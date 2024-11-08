@@ -104,6 +104,9 @@ For a local cluster there are also some [tips](#ingress-tips) related to ingress
   - deploy-chaos-mesh, ie: `make deploy-chaos-mesh`
     - Deploy [chaos-mesh](https://chaos-mesh.org) using [chaos-mesh/chaos-mesh](https://github.com/chaos-mesh/chaos-mesh/tree/master/helm/chaos-mesh).
 
+    - `CHAOS_MESH_CONTAINER_RUNTIME` environment variable can be used to specify the cluster container runtime. It defaults to `containerd`. Verify chaos mesh documentation for more details.
+    - `CHAOS_MESH_CONTAINER_SOCKET_PATH` environment variable can be used to specify the cluster container runtime socket path. It defaults to `/run/containerd/containerd.sock`. Verify chaos mesh documentation for more details.
+
   - configure-inotify, ie: `make configure-inotify`
     - Configure sysctl inotify values (requires sudo access). This may be need in some cases for some applications run fine inside the [kind] cluster.
 
@@ -130,7 +133,7 @@ sudo dnf install dnsmasq
 
 - Create an dnsmasq configuration, configure dnsmasq to start on system boot and start dnsmasq:
 ```sh
-cat - <<EOF > sudo tee /etc/dnsmasq.d/00-local.conf
+cat - <<EOF | sudo tee /etc/dnsmasq.d/00-local.conf
 address=/localcluster/127.0.0.1
 no-resolv
 EOF
@@ -144,7 +147,7 @@ sudo systemctl start dnsmasq
 
 - Create an systemd-resolved configuration to forward DNS queries to dnsmasq, restart systemd-resolved:
 ```sh
-cat - <<EOF > sudo tee /etc/systemd/resolved.conf
+cat - <<EOF | sudo tee /etc/systemd/resolved.conf
 [Resolve]
 DNS=127.0.0.1
 Domains=~localcluster
