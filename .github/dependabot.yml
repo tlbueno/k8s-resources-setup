@@ -13,3 +13,11 @@ updates:
       - "tlbueno"
     reviewers:
       - "tlbueno"
+  - package-ecosystem: "gitsubmodule"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    assignees:
+      - "tlbueno"
+    reviewers:
+      - "tlbueno"

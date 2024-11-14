@@ -3,11 +3,13 @@ Resources to get deployed on kubernetes or openshift cluster
 
 The goal of this project is to have a simple way to prepare a kubernetes or openshift cluster with some basic resources/tools for tests, experiments and proof of concepts. It was created to provide the resources to experiment the [ArtemisCloud operator](https://artemiscloud.io) but may be used as a general tool to provision cluster resources.
 
-There are also other README.md files which are relevant to the information contained here:
+There are also other README.md files which are relevant to the information contained on this one:
 
-- [tools](bin/README.md) - tools that are used my during the deployment and help to debug and configuration the cluster resources.
+- [bin](bin/README.md) - scripts that are used my during the deployment and help to debug and configuration the cluster resources.
 
 - [manifests](manifests/README.md) - kubernetes manifests used during the deployment or to deploy ArtemisCloud instances
+
+- [tools](tools/README.md) - tools which can be used for testing/exercise Artemis fuctionalities
 
 ### Require tools
 

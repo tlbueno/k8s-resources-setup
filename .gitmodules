@@ -1,0 +1,3 @@
+[submodule "tools/artemis-scenarios"]
+	path = tools/artemis-scenarios
+	url = https://github.com/rh-messaging/artemis-scenarios
