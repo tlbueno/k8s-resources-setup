@@ -17,8 +17,10 @@ INGRESS_DOMAIN                = localcluster
 ### Deployments variables
 OLM_VERSION                   =
 ifeq ($(OLM_VERSION),)
-    $(eval OLM_VERSION = $(shell curl -s \
-		https://api.github.com/repos/operator-framework/operator-lifecycle-manager/releases/latest | jq -cr .tag_name))
+	OLM_VERSION_PARAM = $(shell curl -s \
+		https://api.github.com/repos/operator-framework/operator-lifecycle-manager/releases/latest | jq -cr .tag_name)
+else
+	OLM_VERSION_PARAM = "$(OLM_VERSION)"
 endif
 
 REDHAT_CATALOG_IMAGE                = registry.redhat.io/redhat/redhat-operator-index:v4.17
@@ -89,7 +91,7 @@ all: help
     	done; \
     	if [[ "$${skip}" == "false" ]]; then \
 			echo "Executing target $${t}"; \
-			$(MAKE) $${t} INGRESS_DOMAIN=$(INGRESS_DOMAIN) OLM_VERSION=$(OLM_VERSION); \
+			$(MAKE) $${t} INGRESS_DOMAIN=$(INGRESS_DOMAIN) OLM_VERSION_PARAM=$(OLM_VERSION_PARAM); \
 		else \
 			echo "Skipping target $${t}"; \
     	fi; \
@@ -194,12 +196,12 @@ deploy-olm: ## Deploy Operator Lifecycle Manager (OLM) in the cluster
 	@echo ""
 	@echo "# Running $(@) #"
 	@echo ""
-	@echo "Deploying OLM version $(OLM_VERSION)"
+	@echo "Deploying OLM version $(OLM_VERSION_PARAM)"
 	@tempfile=$(shell mktemp); \
-	curl -sSL https://github.com/operator-framework/operator-lifecycle-manager/releases/download/$(OLM_VERSION)/install.sh \
+	curl -sSL https://github.com/operator-framework/operator-lifecycle-manager/releases/download/$(OLM_VERSION_PARAM)/install.sh \
 		-o $${tempfile}; \
 	chmod +x $${tempfile}; \
-	$${tempfile} $(OLM_VERSION); \
+	$${tempfile} $(OLM_VERSION_PARAM); \
 	rm $${tempfile}
 	@echo "############################################################"
 	@echo "# Removing pod security enforcement from olm namespace     #"
