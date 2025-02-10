@@ -156,13 +156,13 @@ deploy-ingress-controller: ## Deploy Ingress controller in the cluster
 	@echo ""
 	@namespace_name=ingress-nginx; \
 	chart=$(INGRESS_CHAT_NAME); \
-	chat_tag=helm-chart-$(shell helm search repo $(INGRESS_CHAT_NAME) --output yaml | yq '.[0].version'); \
+	chart_tag=helm-chart-$(shell helm search repo $(INGRESS_CHAT_NAME) --output yaml | yq '.[0].version'); \
 	echo -n "Deploying chart $${chart} " && helm show chart $${chart} |grep -E "(^version|^appVersion)" | sort -r | paste -sd ' '; \
 	helm install --namespace $${namespace_name} --create-namespace --wait \
 		--set controller.extraArgs.enable-ssl-passthrough= \
 		--set controller.allowSnippetAnnotations=true \
 		--set controller.ingressClassResource.default=true \
-		--values https://raw.githubusercontent.com/kubernetes/ingress-nginx/$${chat_tag}/hack/manifest-templates/provider/kind/values.yaml \
+		--values https://raw.githubusercontent.com/kubernetes/ingress-nginx/$${chart_tag}/hack/manifest-templates/provider/kind/values.yaml \
 		ingress-controller $${chart}; \
 	$(BIN_DIR)/kubectl-wait-wrapper.sh -n $${namespace_name} \
 		-t pods \
