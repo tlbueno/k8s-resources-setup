@@ -5,7 +5,7 @@ The goal of this project is to have a simple way to prepare a kubernetes or open
 
 There are also other README.md files which are relevant to the information contained here:
 
-- [tools](bin/README.md) - tools that are used my during the deployment and help to debug and configuration the cluster resources.
+- [bin](bin/README.md) - scripts that are used my during the deployment and help to debug and configuration the cluster resources.
 
 - [manifests](manifests/README.md) - kubernetes manifests used during the deployment or to deploy ArtemisCloud instances
 
@@ -25,7 +25,7 @@ There are also other README.md files which are relevant to the information conta
 
 In the [targets list below](#make-targets), you will see what can be deployed in the cluster. There is a target that creates a local cluster but this is not a requirement. If you have a remote cluster, since you are logged in it, it will work without issues. If you are running an Openshift cluster there are targets which may not apply, like the ones which deploys `olm` and `redhat operators catalog`.
 
-The local cluster is created using [kind] as you will see below. In the [kind] configuration, [kind-config.yaml], there is an extra mount to mount the `${HOME}/.docker/config.json`. This file allows kind to use the registries credentials from docker. As an example, if you are logged in on a private registry like `registry.redhat.io` in docker, [kind] will be able to use images from there. It also expose ports 80, 443 as needed by the ingress-nginx and the port ranges 5000-5009, 5100-51009, 33060-33065, 51510-51519, 52520-52529 to be used by ingress-nginx to expose TCP protocol other than http and https like to expose artemis acceptor without SSL, java remote debugger, mariadb, etc to the host machine. Refer to `ingress-ngnix-expose-tcp-port.sh` in [tools](bin/README.md) for more information.
+The local cluster is created using [kind] as you will see below. In the [kind] configuration, [kind-config.yaml], there is an extra mount to mount the `${HOME}/.docker/config.json`. This file allows kind to use the registries credentials from docker. As an example, if you are logged in on a private registry like `registry.redhat.io` in docker, [kind] will be able to use images from there. It also expose ports 80, 443 as needed by the ingress-nginx and the port ranges 5000-5009, 5100-51009, 33060-33065, 51510-51519, 52520-52529 to be used by ingress-nginx to expose TCP protocol other than http and https like to expose artemis acceptor without SSL, java remote debugger, mariadb, etc to the host machine. Refer to `ingress-ngnix-expose-tcp-port.sh` in [bin](bin/README.md) for more information.
 
 For a local cluster there are also some [tips](#ingress-tips) related to ingress  on configuring the ingress to work
 
