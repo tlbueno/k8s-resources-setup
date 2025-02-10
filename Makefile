@@ -370,11 +370,12 @@ deploy-redhat-operators-catalog: ## Deploy RedHat Operators Catalog
 		--set catalogSource.namespace=$${namespace_name} \
 		--set catalogSource.image=$(REDHAT_CATALOG_IMAGE) \
 		redhat-operators-catalog $${chart}; \
+	sleep 20; \
 	$(BIN_DIR)/kubectl-wait-wrapper.sh -n $${namespace_name} \
-		-t pods \
-		-p "--field-selector=status.phase!=Succeeded --for=condition=Ready --timeout=300s --all pods" \
 		-t deployments \
-		-p "--for=condition=Available --timeout=300s --all deployments"
+		-p "--for=condition=Available --timeout=300s --all deployments" \
+		-t pods \
+		-p "--field-selector=status.phase!=Succeeded --for=condition=Ready --timeout=300s --all pods"
 	@echo ""
 
 .PHONY: deploy-artemiscloud-operator
