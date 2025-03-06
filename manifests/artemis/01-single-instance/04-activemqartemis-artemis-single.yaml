@@ -27,12 +27,12 @@ spec:
   console:
     expose: true
   deploymentPlan:
-    # image: quay.io/artemiscloud/activemq-artemis-broker-kubernetes:snapshot
-    # initImage: quay.io/artemiscloud/activemq-artemis-broker-init:snapshot
+    # image: quay.io/arkmq/activemq-artemis-broker-kubernetes:snapshot
+    # initImage: quay.io/arkmq/activemq-artemis-broker-init:snapshot
     # image: |
-    #   quay.io/artemiscloud/activemq-artemis-broker-kubernetes:artemis.2.36.0
+    #   quay.io/arkmq/activemq-artemis-broker-kubernetes:artemis.2.36.0
     # initImage: |
-    #   quay.io/artemiscloud/activemq-artemis-broker-init:artemis.2.36.0
+    #   quay.io/arkmq/activemq-artemis-broker-init:artemis.2.36.0
     clustered: true
     enableMetricsPlugin: true
     extraMounts:

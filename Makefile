@@ -25,16 +25,16 @@ endif
 
 REDHAT_CATALOG_IMAGE                = registry.redhat.io/redhat/redhat-operator-index:v4.17
 
-ARTEMISCLOUD_NAMESPACE              = artemiscloud-operator
-ARTEMISCLOUD_LOG_LEVEL              = info
-ARTEMISCLOUD_WATCH_MODE             = all
-ARTEMISCLOUD_WATCH_NAMESPACES       =
-ifneq ($(ARTEMISCLOUD_WATCH_NAMESPACES),)
-	ARTEMISCLOUD_WATCH_NAMESPACES_PARAM = --set "operator.watch.namespaces={$(ARTEMISCLOUD_WATCH_NAMESPACES)}"
+ARKMQ_NAMESPACE              = arkmq-operator
+ARKMQ_LOG_LEVEL              = info
+ARKMQ_WATCH_MODE             = all
+ARKMQ__WATCH_NAMESPACES       =
+ifneq ($(ARKMQ_WATCH_NAMESPACES),)
+	ARKMQ_WATCH_NAMESPACES_PARAM = --set "operator.watch.namespaces={$(ARKMQ_WATCH_NAMESPACES)}"
 endif
-ARTEMISCLOUD_CHART_VERSION          =
-ifneq ($(ARTEMISCLOUD_CHART_VERSION),)
-	ARTEMISCLOUD_CHART_VERSION_PARAM = --version "$(ARTEMISCLOUD_CHART_VERSION)"
+ARKMQ_CHART_VERSION          =
+ifneq ($(ARKMQ_CHART_VERSION),)
+	ARKMQ_CHART_VERSION_PARAM = --version "$(ARKMQ_CHART_VERSION)"
 endif
 INGRESS_CHAT_NAME                    = ingress-nginx/ingress-nginx
 CHAOS_MESH_CONTAINER_RUNTIME         = containerd
@@ -380,21 +380,21 @@ deploy-redhat-operators-catalog: ## Deploy RedHat Operators Catalog
 		-p "--field-selector=status.phase!=Succeeded --for=condition=Ready --timeout=300s --all pods"
 	@echo ""
 
-.PHONY: deploy-artemiscloud-operator
-deploy-artemiscloud-operator: ## Deploy ArtemisCloud Operator
+.PHONY: deploy-arkmq-operator
+deploy-arkmq-operator: ## Deploy ArkMQ Operator
 	@echo ""
 	@echo "# Running $(@) #"
 	@echo ""
-	@namespace_name=$(ARTEMISCLOUD_NAMESPACE); \
-	chart=tlbueno/artemiscloud-operator; \
-	echo -n "Deploying chart $${chart} " && helm show chart $(ARTEMISCLOUD_CHART_VERSION_PARAM) $${chart} \
+	@namespace_name=$(ARKMQ_NAMESPACE); \
+	chart=tlbueno/arkmq-operator; \
+	echo -n "Deploying chart $${chart} " && helm show chart $(ARKMQ_CHART_VERSION_PARAM) $${chart} \
 		| grep -E "(^version|^appVersion)" | sort -r | paste -sd ' '; \
 	helm install --namespace $${namespace_name} --create-namespace --wait \
-		--set operator.logLevel=$(ARTEMISCLOUD_LOG_LEVEL) \
-		--set operator.watch.mode=$(ARTEMISCLOUD_WATCH_MODE) \
-		$(ARTEMISCLOUD_WATCH_NAMESPACES_PARAM) \
-		$(ARTEMISCLOUD_CHART_VERSION_PARAM) \
-		artemiscloud-operator $${chart}; \
+		--set operator.logLevel=$(ARKMQ_LOG_LEVEL) \
+		--set operator.watch.mode=$(ARKMQ_WATCH_MODE) \
+		$(ARKMQ_WATCH_NAMESPACES_PARAM) \
+		$(ARKMQ_CHART_VERSION_PARAM) \
+		arkmq-operator $${chart}; \
 	$(BIN_DIR)/kubectl-wait-wrapper.sh -n $${namespace_name} \
 		-t pods \
 		-p "--for=condition=Ready --timeout=300s --all pods" \

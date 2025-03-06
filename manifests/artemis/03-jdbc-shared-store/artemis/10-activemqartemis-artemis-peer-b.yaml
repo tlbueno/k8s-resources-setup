@@ -27,12 +27,12 @@ spec:
   console:
     expose: true
   deploymentPlan:
-    # image: quay.io/artemiscloud/activemq-artemis-broker-kubernetes:snapshot
-    # initImage: quay.io/artemiscloud/activemq-artemis-broker-init:snapshot
+    # image: quay.io/arkmq/activemq-artemis-broker-kubernetes:snapshot
+    # initImage: quay.io/arkmq/activemq-artemis-broker-init:snapshot
     # image: |
-    #   quay.io/artemiscloud/activemq-artemis-broker-kubernetes:artemis.2.36.0
+    #   quay.io/arkmq/activemq-artemis-broker-kubernetes:artemis.2.36.0
     # initImage: |
-    #   quay.io/artemiscloud/activemq-artemis-broker-init:artemis.2.36.0
+    #   quay.io/arkmq/activemq-artemis-broker-init:artemis.2.36.0
     clustered: false
     enableMetricsPlugin: true
     extraMounts:
@@ -78,7 +78,7 @@ spec:
                       test -f /amq/init/config/extra-libs/$JAR_FILE ||
                       curl -sSL -o /amq/init/config/extra-libs/$JAR_FILE
                       https://dlm.mariadb.com/3852266/Connectors/java/connector-java-3.4.1/$JAR_FILE
-                  image: quay.io/artemiscloud/activemq-artemis-broker-init
+                  image: quay.io/arkmq/activemq-artemis-broker-init
                   name: db-jdbc-driver-init
                   volumeMounts:
                     - mountPath: /amq/init/config
