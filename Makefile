@@ -17,22 +17,24 @@ INGRESS_DOMAIN                = localcluster
 ### Deployments variables
 OLM_VERSION                   =
 ifeq ($(OLM_VERSION),)
-    $(eval OLM_VERSION = $(shell curl -s \
-		https://api.github.com/repos/operator-framework/operator-lifecycle-manager/releases/latest | jq -cr .tag_name))
+	OLM_VERSION_PARAM = $(shell curl -s \
+		https://api.github.com/repos/operator-framework/operator-lifecycle-manager/releases/latest | jq -cr .tag_name)
+else
+	OLM_VERSION_PARAM = "$(OLM_VERSION)"
 endif
 
 REDHAT_CATALOG_IMAGE                = registry.redhat.io/redhat/redhat-operator-index:v4.17
 
-ARTEMISCLOUD_NAMESPACE              = artemiscloud-operator
-ARTEMISCLOUD_LOG_LEVEL              = info
-ARTEMISCLOUD_WATCH_MODE             = all
-ARTEMISCLOUD_WATCH_NAMESPACES       =
-ifneq ($(ARTEMISCLOUD_WATCH_NAMESPACES),)
-	ARTEMISCLOUD_WATCH_NAMESPACES_PARAM = --set "operator.watch.namespaces={$(ARTEMISCLOUD_WATCH_NAMESPACES)}"
+ARKMQ_NAMESPACE              = arkmq-operator
+ARKMQ_LOG_LEVEL              = info
+ARKMQ_WATCH_MODE             = all
+ARKMQ__WATCH_NAMESPACES       =
+ifneq ($(ARKMQ_WATCH_NAMESPACES),)
+	ARKMQ_WATCH_NAMESPACES_PARAM = --set "operator.watch.namespaces={$(ARKMQ_WATCH_NAMESPACES)}"
 endif
-ARTEMISCLOUD_CHART_VERSION          =
-ifneq ($(ARTEMISCLOUD_CHART_VERSION),)
-	ARTEMISCLOUD_CHART_VERSION_PARAM = --version "$(ARTEMISCLOUD_CHART_VERSION)"
+ARKMQ_CHART_VERSION          =
+ifneq ($(ARKMQ_CHART_VERSION),)
+	ARKMQ_CHART_VERSION_PARAM = --version "$(ARKMQ_CHART_VERSION)"
 endif
 INGRESS_CHAT_NAME                    = ingress-nginx/ingress-nginx
 CHAOS_MESH_CONTAINER_RUNTIME         = containerd
@@ -89,7 +91,7 @@ all: help
     	done; \
     	if [[ "$${skip}" == "false" ]]; then \
 			echo "Executing target $${t}"; \
-			$(MAKE) $${t} INGRESS_DOMAIN=$(INGRESS_DOMAIN) OLM_VERSION=$(OLM_VERSION); \
+			$(MAKE) $${t} INGRESS_DOMAIN=$(INGRESS_DOMAIN) OLM_VERSION_PARAM=$(OLM_VERSION_PARAM); \
 		else \
 			echo "Skipping target $${t}"; \
     	fi; \
@@ -156,13 +158,13 @@ deploy-ingress-controller: ## Deploy Ingress controller in the cluster
 	@echo ""
 	@namespace_name=ingress-nginx; \
 	chart=$(INGRESS_CHAT_NAME); \
-	chat_tag=helm-chart-$(shell helm search repo $(INGRESS_CHAT_NAME) --output yaml | yq '.[0].version'); \
+	chart_tag=helm-chart-$(shell helm search repo $(INGRESS_CHAT_NAME) --output yaml | yq '.[0].version'); \
 	echo -n "Deploying chart $${chart} " && helm show chart $${chart} |grep -E "(^version|^appVersion)" | sort -r | paste -sd ' '; \
 	helm install --namespace $${namespace_name} --create-namespace --wait \
 		--set controller.extraArgs.enable-ssl-passthrough= \
 		--set controller.allowSnippetAnnotations=true \
 		--set controller.ingressClassResource.default=true \
-		--values https://raw.githubusercontent.com/kubernetes/ingress-nginx/$${chat_tag}/hack/manifest-templates/provider/kind/values.yaml \
+		--values https://raw.githubusercontent.com/kubernetes/ingress-nginx/$${chart_tag}/hack/manifest-templates/provider/kind/values.yaml \
 		ingress-controller $${chart}; \
 	$(BIN_DIR)/kubectl-wait-wrapper.sh -n $${namespace_name} \
 		-t pods \
@@ -194,12 +196,12 @@ deploy-olm: ## Deploy Operator Lifecycle Manager (OLM) in the cluster
 	@echo ""
 	@echo "# Running $(@) #"
 	@echo ""
-	@echo "Deploying OLM version $(OLM_VERSION)"
+	@echo "Deploying OLM version $(OLM_VERSION_PARAM)"
 	@tempfile=$(shell mktemp); \
-	curl -sSL https://github.com/operator-framework/operator-lifecycle-manager/releases/download/$(OLM_VERSION)/install.sh \
+	curl -sSL https://github.com/operator-framework/operator-lifecycle-manager/releases/download/$(OLM_VERSION_PARAM)/install.sh \
 		-o $${tempfile}; \
 	chmod +x $${tempfile}; \
-	$${tempfile} $(OLM_VERSION); \
+	$${tempfile} $(OLM_VERSION_PARAM); \
 	rm $${tempfile}
 	@echo "############################################################"
 	@echo "# Removing pod security enforcement from olm namespace     #"
@@ -370,28 +372,29 @@ deploy-redhat-operators-catalog: ## Deploy RedHat Operators Catalog
 		--set catalogSource.namespace=$${namespace_name} \
 		--set catalogSource.image=$(REDHAT_CATALOG_IMAGE) \
 		redhat-operators-catalog $${chart}; \
+	sleep 20; \
 	$(BIN_DIR)/kubectl-wait-wrapper.sh -n $${namespace_name} \
-		-t pods \
-		-p "--field-selector=status.phase!=Succeeded --for=condition=Ready --timeout=300s --all pods" \
 		-t deployments \
-		-p "--for=condition=Available --timeout=300s --all deployments"
+		-p "--for=condition=Available --timeout=300s --all deployments" \
+		-t pods \
+		-p "--field-selector=status.phase!=Succeeded --for=condition=Ready --timeout=300s --all pods"
 	@echo ""
 
-.PHONY: deploy-artemiscloud-operator
-deploy-artemiscloud-operator: ## Deploy ArtemisCloud Operator
+.PHONY: deploy-arkmq-operator
+deploy-arkmq-operator: ## Deploy ArkMQ Operator
 	@echo ""
 	@echo "# Running $(@) #"
 	@echo ""
-	@namespace_name=$(ARTEMISCLOUD_NAMESPACE); \
-	chart=tlbueno/artemiscloud-operator; \
-	echo -n "Deploying chart $${chart} " && helm show chart $(ARTEMISCLOUD_CHART_VERSION_PARAM) $${chart} \
+	@namespace_name=$(ARKMQ_NAMESPACE); \
+	chart=tlbueno/arkmq-operator; \
+	echo -n "Deploying chart $${chart} " && helm show chart $(ARKMQ_CHART_VERSION_PARAM) $${chart} \
 		| grep -E "(^version|^appVersion)" | sort -r | paste -sd ' '; \
 	helm install --namespace $${namespace_name} --create-namespace --wait \
-		--set operator.logLevel=$(ARTEMISCLOUD_LOG_LEVEL) \
-		--set operator.watch.mode=$(ARTEMISCLOUD_WATCH_MODE) \
-		$(ARTEMISCLOUD_WATCH_NAMESPACES_PARAM) \
-		$(ARTEMISCLOUD_CHART_VERSION_PARAM) \
-		artemiscloud-operator $${chart}; \
+		--set operator.logLevel=$(ARKMQ_LOG_LEVEL) \
+		--set operator.watch.mode=$(ARKMQ_WATCH_MODE) \
+		$(ARKMQ_WATCH_NAMESPACES_PARAM) \
+		$(ARKMQ_CHART_VERSION_PARAM) \
+		arkmq-operator $${chart}; \
 	$(BIN_DIR)/kubectl-wait-wrapper.sh -n $${namespace_name} \
 		-t pods \
 		-p "--for=condition=Ready --timeout=300s --all pods" \

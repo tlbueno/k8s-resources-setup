@@ -1,5 +1,5 @@
 # manifests
-Kubernetes manifests used during the deployment or to deploy ArtemisCloud instances
+Kubernetes manifests used during the deployment or to deploy ArkMQ instances
 
 - [cert-manager](cert-manager) - Manifest to used in [makefile] to deploy cert-manager, trust manager and create self-signed CA
 
